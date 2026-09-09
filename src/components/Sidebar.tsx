@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Home,
   Users,
@@ -47,8 +47,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   user,
   onLogout
 }) => {
-  const [isOpen, setIsOpen] = useState(true);
-
   const navItems: NavItem[] = [
     { id: 'homepage', label: 'HOMEPAGE', shortLabel: 'Homepage', colorHex: '#00263f', icon: Home },
     { id: 'customer', label: 'CUSTOMER ISSUE', shortLabel: 'Customer', colorHex: '#059669', icon: Users },
@@ -61,86 +59,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      {/* SIDEBAR DESKTOP KIRI (Sembunyi di Homepage) */}
-      {currentView !== 'home' && (
-        <aside
-          id="app-partner-sidebar"
-          style={{ width: isOpen ? '260px' : '68px' }}
-          className="hidden md:flex shrink-0 bg-white relative self-stretch min-h-full py-4 flex-col font-sans select-none transition-all duration-200 shadow-2xs z-10"
-        >
-          <div
-            onClick={() => setIsOpen(!isOpen)}
-            className="absolute top-0 right-0 bottom-0 w-3 cursor-col-resize group flex justify-end z-20"
-            title={isOpen ? 'Tutup Sidebar' : 'Buka Sidebar'}
-          >
-            <div className="w-[1px] h-full bg-[#d6cfbf] group-hover:bg-[#00263f] group-hover:w-[3px] transition-all duration-150" />
-          </div>
-
-          <div className="sticky top-4 flex flex-col h-fit pr-1">
-            <nav className="flex flex-col space-y-1 px-2">
-              {navItems.map((item) => {
-                const isHomepage = item.id === 'homepage';
-                const isActive = (() => {
-                  if (currentView === 'main-news') return isHomepage;
-                  if (isHomepage) return currentView === 'home';
-                  if (currentView === 'category' || currentView === 'subcategory' || currentView === 'specific-news') {
-                    return selectedCategory === item.id;
-                  }
-                  return false;
-                })();
-                const IconComponent = item.icon;
-
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => {
-                      if (isHomepage) {
-                        onSelectHomepage();
-                      } else {
-                        onSelectCategory(item.id as CategoryId);
-                      }
-                    }}
-                    title={item.label}
-                    className={`w-full text-left rounded-xl transition-all duration-150 flex items-center cursor-pointer group ${
-                      isOpen ? 'px-3 py-2.5 gap-2.5' : 'p-2.5 justify-center'
-                    } ${
-                      isActive
-                        ? 'bg-[#00263f] text-white font-black shadow-xs'
-                        : 'text-slate-700 hover:text-slate-950 hover:bg-[#eeebe1]/80 font-bold text-xs'
-                    }`}
-                  >
-                    <div
-                      className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                        isActive
-                          ? 'bg-white/15 text-white'
-                          : 'bg-[#eeebe1]/70 text-slate-700 group-hover:bg-[#eeebe1]'
-                      }`}
-                    >
-                      <IconComponent className="w-4 h-4" />
-                    </div>
-                    {isOpen && (
-                      <div className="flex-1 flex items-center justify-between min-w-0">
-                        <span className="text-xs font-bold whitespace-nowrap tracking-tight">
-                          {item.label}
-                        </span>
-                        {isActive ? (
-                          <span
-                            className="w-2 h-2 rounded-full shrink-0 shadow-xs ml-1.5"
-                            style={{ backgroundColor: item.colorHex }}
-                          />
-                        ) : (
-                          <ChevronRight className="w-3.5 h-3.5 text-slate-300 opacity-0 group-hover:opacity-100 group-hover:text-slate-400 transition shrink-0 ml-1" />
-                        )}
-                      </div>
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
-          </div>
-        </aside>
-      )}
-
       {/* DRAWER SIDEBAR MOBILE (MUNCUL DARI KANAN) */}
       {isMobileOpen && (
         <div className="fixed inset-0 z-[100] flex justify-end animate-in fade-in duration-150">
