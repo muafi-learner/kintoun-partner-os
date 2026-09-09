@@ -1,8 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React from 'react';
 import { 
   ArrowRight, ChevronRight, FileText, ExternalLink, 
-  Search, Users, Coffee, Wrench, UserCheck, PackageCheck, Store, 
-  X, Layers 
+  Users, Coffee, Wrench, UserCheck, PackageCheck, Store, Layers 
 } from 'lucide-react';
 import { CategoryId, NewsArticle } from '../types';
 import { CATEGORIES } from '../data/initialData';
@@ -22,8 +21,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onSelectCategory,
   isAdmin
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-
   const renderCategoryIcon = (iconName: string) => {
     const iconClass = "w-6 h-6 shrink-0";
     switch (iconName) {
@@ -36,17 +33,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
       default: return <Layers className={`${iconClass} text-slate-600`} />;
     }
   };
-
-  const filteredCategories = useMemo(() => {
-    if (!searchQuery.trim()) return CATEGORIES;
-    const q = searchQuery.toLowerCase();
-    return CATEGORIES.filter((cat) => {
-      const matchName = cat.name.toLowerCase().includes(q);
-      const matchTagline = cat.tagline?.toLowerCase().includes(q);
-      const matchItems = cat.items.some((item) => item.toLowerCase().includes(q));
-      return matchName || matchTagline || matchItems;
-    });
-  }, [searchQuery]);
 
   return (
     <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 font-sans min-h-full pb-20">
@@ -90,36 +76,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
         </section>
 
-        <section className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 px-1">
-          {/* Teks panduan disembunyikan di layar HP (hidden md:block) */}
-          <p className="hidden md:block text-sm text-slate-600 font-semibold">
-            Pilih topik di bawah atau ketik kata kunci kendala untuk menemukan solusi
-          </p>
-          <div className="relative w-full md:w-80 shrink-0">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Cari kendala (cth: mesin, resep, komplain)..."
-              className="w-full pl-9.5 pr-8 py-2 rounded-xl border border-[#d6cfbf] bg-white text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00263f] transition shadow-2xs"
-            />
-            {searchQuery && (
-              <button 
-                onClick={() => setSearchQuery('')}
-                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
-              >
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
-          </div>
-        </section>
-
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 mb-10">
-          {filteredCategories.map((cat) => (
+          {CATEGORIES.map((cat) => (
             <div
               key={cat.id}
-              id={`issue-card-${cat.id}`}
               onClick={() => onSelectCategory(cat.id)}
               className="group bg-white hover:bg-[#fdfcfb] rounded-2xl p-5 sm:p-6 border border-[#d6cfbf] hover:border-[#b8ad98] flex flex-col justify-between cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-lg shadow-xs min-h-[330px] select-none"
             >
@@ -140,28 +100,21 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     Daftar Panduan & Prosedur:
                   </p>
                   <ul className="space-y-2">
-                    {cat.items.map((item, idx) => {
-                      const isMatched = searchQuery && item.toLowerCase().includes(searchQuery.toLowerCase());
-                      return (
-                        <li 
-                          key={idx}
-                          className={`text-xs font-semibold flex items-center justify-between p-1.5 rounded-lg transition ${
-                            isMatched 
-                              ? 'bg-amber-100 text-amber-900 font-bold' 
-                              : 'text-slate-700 group-hover:text-slate-900 group-hover:bg-slate-100/70'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 truncate">
-                            <span 
-                              className="w-1.5 h-1.5 rounded-full shrink-0" 
-                              style={{ backgroundColor: cat.colorHex }}
-                            />
-                            <span className="truncate">{item}</span>
-                          </div>
-                          <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-500 shrink-0" />
-                        </li>
-                      );
-                    })}
+                    {cat.items.map((item, idx) => (
+                      <li 
+                        key={idx}
+                        className="text-xs font-semibold flex items-center justify-between p-1.5 rounded-lg transition text-slate-700 group-hover:text-slate-900 group-hover:bg-slate-100/70"
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <span 
+                            className="w-1.5 h-1.5 rounded-full shrink-0" 
+                            style={{ backgroundColor: cat.colorHex }}
+                          />
+                          <span className="truncate">{item}</span>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-500 shrink-0" />
+                      </li>
+                    ))}
                   </ul>
                 </div>
               </div>
@@ -175,19 +128,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </button>
             </div>
           ))}
-          {filteredCategories.length === 0 && (
-            <div className="col-span-full py-12 text-center bg-white rounded-2xl border border-dashed border-slate-300 p-8">
-              <p className="text-sm font-bold text-slate-600">
-                Tidak ada panduan yang cocok dengan pencarian "{searchQuery}"
-              </p>
-              <button
-                onClick={() => setSearchQuery('')}
-                className="mt-4 px-4 py-2 bg-[#00263f] hover:bg-[#3c586d] text-white rounded-xl text-xs font-bold transition cursor-pointer"
-              >
-                Reset Pencarian
-              </button>
-            </div>
-          )}
         </section>
       </div>
 
