@@ -91,7 +91,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </section>
 
         <section className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 px-1">
-          <p className="text-xs sm:text-sm text-slate-600 font-semibold">
+          {/* Teks panduan disembunyikan di layar HP (hidden md:block) */}
+          <p className="hidden md:block text-sm text-slate-600 font-semibold">
             Pilih topik di bawah atau ketik kata kunci kendala untuk menemukan solusi
           </p>
           <div className="relative w-full md:w-80 shrink-0">
@@ -190,7 +191,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </section>
       </div>
 
-      {/* TOMBOL BANTUAN TEKNISI FLOATING OVERLAPPING DI POJOK KANAN BAWAH */}
       <div className="fixed bottom-6 right-6 z-40">
         <a
           href="https://helpdesk.kintouncoffee.id"
