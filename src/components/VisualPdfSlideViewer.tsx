@@ -200,11 +200,21 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
+        // Ambil dimensi kontainer aktual saat ini
         const containerWidth = containerRef.current?.clientWidth || 900;
+        const containerHeight = containerRef.current?.clientHeight || 600;
+        
         const unscaledViewport = page.getViewport({ scale: 1, rotation });
         
+        // Cek ruang tersedia dengan mengurangi area toolbar
         const availableWidth = Math.max(containerWidth - 48, 320);
-        const autoFitScale = (availableWidth / unscaledViewport.width) * 0.95;
+        const availableHeight = Math.max(containerHeight - 140, 320); 
+
+        // Kunci rasio agar fit-to-screen bekerja sempurna dari lebar dan tinggi
+        const fitWidthScale = availableWidth / unscaledViewport.width;
+        const fitHeightScale = availableHeight / unscaledViewport.height;
+        const autoFitScale = Math.min(fitWidthScale, fitHeightScale) * 0.98;
+        
         const effectiveScale = autoFitScale * scale;
 
         const outputScale = Math.min(window.devicePixelRatio || 1, 2);
@@ -226,7 +236,7 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
     };
     renderPage();
     return () => { isCancelled = true; };
-  }, [currentPage, scale, rotation, numPages]);
+  }, [currentPage, scale, rotation, numPages, isFullscreen]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -310,9 +320,9 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
         </div>
       </div>
 
-      {/* Main Canvas Display Area - Fixed Fullscreen Layout */}
+      {/* Main Canvas Display Area */}
       <div className={`flex-1 p-4 sm:p-6 flex items-center justify-center overflow-auto ${
-        isFullscreen ? 'bg-slate-950 h-full' : 'bg-[#e7e3d8]/50 min-h-[420px] max-h-[720px]'
+        isFullscreen ? 'bg-slate-950 h-screen' : 'bg-[#e7e3d8]/50 min-h-[420px] max-h-[720px]'
       }`}>
         {isLoading && (
           <div className="flex flex-col items-center justify-center p-12 text-center text-slate-600">
