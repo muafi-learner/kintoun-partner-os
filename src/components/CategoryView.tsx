@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { 
-  FileText, Search, X, Users, Coffee, Wrench, 
+  Upload, FileText, Search, X, Users, Coffee, Wrench, 
   UserCheck, PackageCheck, Store, Layers, BookOpen, 
   MessageSquareWarning, HeartHandshake, Smile, PhoneCall, ClipboardEdit, 
   AlertOctagon, Utensils, Hammer, Settings, Droplets, Cpu, Clock, 
@@ -65,16 +65,24 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
   return (
     <div className="relative flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-6xl mx-auto w-full font-sans flex flex-col justify-between min-h-full pb-20">
       <div>
-        {/* TOP BAR: HANYA MUNCUL DI MOBILE (TOMBOL KEMBALI) */}
-        <div className="md:hidden flex items-center gap-2 mb-4">
-          <button
-            id="btn-back-to-home"
-            onClick={onBackToHome}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-[#d6cfbf] hover:bg-[#eeebe1] hover:text-[#00263f] transition shadow-xs cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Kembali</span>
-          </button>
+        {/* TOP BAR: MOBILE (TOMBOL KEMBALI & ADMIN UPLOAD) */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <div className="flex items-center gap-2">
+            <button
+              id="btn-back-to-home"
+              onClick={onBackToHome}
+              className="md:hidden inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-[#d6cfbf] hover:bg-[#eeebe1] hover:text-[#00263f] transition shadow-xs cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Kembali</span>
+            </button>
+          </div>
+
+          {isAdmin && (
+            <button onClick={onOpenUpload} className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-sm transition cursor-pointer">
+              <Upload className="w-3.5 h-3.5" /><span>Input PDF {currentCategory.name}</span>
+            </button>
+          )}
         </div>
 
         <div className="bg-white rounded-2xl border border-[#d6cfbf] p-4 sm:p-5 mb-6 shadow-xs flex items-center justify-between gap-4">
@@ -89,11 +97,12 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
           </div>
         </div>
 
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
-          <p className="text-xs sm:text-sm text-slate-600 font-semibold">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
+          {/* Teks panduan disembunyikan di layar HP (hidden md:block) */}
+          <p className="hidden md:block text-sm text-slate-600 font-semibold">
             Pilih modul masalah spesifik untuk membuka slide presentasi solusi & standar penanganan
           </p>
-          <div className="relative w-full sm:w-72 shrink-0">
+          <div className="relative w-full md:w-72 shrink-0">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
@@ -151,7 +160,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
             );
           })}
 
-          {/* KOTAK PLACEHOLDER ADMIN UPLOAD - Muncul di bawah daftar materi jika status login = Admin */}
           {isAdmin && (
             <div onClick={onOpenUpload} className="border-2 border-dashed border-amber-300 bg-amber-50/40 hover:bg-amber-50 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition min-h-[220px]">
               <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mb-2.5 shadow-2xs"><PlusCircle className="w-5 h-5" /></div>
@@ -162,7 +170,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
         </div>
       </div>
 
-      {/* TOMBOL BANTUAN TEKNISI FLOATING OVERLAPPING DI POJOK KANAN BAWAH */}
       <div className="fixed bottom-6 right-6 z-40">
         <a
           href="https://helpdesk.kintouncoffee.id"
