@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  ArrowLeft, ChevronRight, Upload, ExternalLink 
+  ArrowLeft, Upload, ExternalLink 
 } from 'lucide-react';
 import { 
   CategoryId, 
@@ -13,7 +13,6 @@ import {
   PdfSlide
 } from './types';
 import { 
-  CATEGORIES, 
   INITIAL_MAIN_NEWS, 
   INITIAL_SPECIFIC_NEWS, 
   INITIAL_SUBCATEGORIES, 
@@ -27,7 +26,6 @@ import { NewsDetailView } from './components/NewsDetailView';
 import { LearningCardsView } from './components/LearningCardsView';
 import { DashboardView } from './components/DashboardView';
 import { AdminUploadModal } from './components/AdminUploadModal';
-import { ProfileModal } from './components/ProfileModal';
 import { NotificationModal } from './components/NotificationModal';
 import { SearchModal } from './components/SearchModal';
 import { TicketModal } from './components/TicketModal';
@@ -129,7 +127,6 @@ export default function App() {
 
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isTicketOpen, setIsTicketOpen] = useState(false);
@@ -162,7 +159,6 @@ export default function App() {
     localStorage.setItem(STORAGE_KEYS.CURRENT_ROLE, newProfile.role);
   };
 
-  // LOGIC LOGOUT DIPERBARUI DI SINI
   const handleLogout = () => {
     const defaultKru: UserProfile = {
       id: `usr_${Date.now()}`,
@@ -175,31 +171,9 @@ export default function App() {
     setRole('user');
     localStorage.setItem(STORAGE_KEYS.CURRENT_ROLE, 'user');
     
-    // Trik UX: Tendang ke halaman awal & langsung buka pop-up Login
     setCurrentView('home');
     setActiveDashboard(null);
     setIsLoginOpen(true);
-  };
-
-  const handleSwitchRole = (newRole: Role) => {
-    setRole(newRole);
-    if (newRole === 'admin') {
-      setUser({
-        id: 'adm_01',
-        name: 'Head Office Administrator',
-        role: 'admin',
-        storeName: 'HQ & Operational Central Kintoun',
-        email: 'admin.ops@kintoun.id'
-      });
-    } else {
-      setUser({
-        id: 'usr_01',
-        name: 'Budi Santoso',
-        role: 'user',
-        storeName: 'Gerai Kintoun Merdeka - Bandung',
-        email: 'barista.merdeka@kintoun.id'
-      });
-    }
   };
 
   const handleNavigateToSubcategory = (catId: CategoryId, subcatId: string, targetSlide?: number) => {
@@ -397,17 +371,21 @@ export default function App() {
     <div className="min-h-screen bg-[#eeebe1] text-slate-800 flex flex-col font-sans selection:bg-[#00263f] selection:text-white">
       {/* Top Header */}
       <Header
-        variant={currentView === 'home' ? 'home' : 'subpage'}
+        currentView={currentView}
         role={role}
         user={user}
         notifications={notifications}
         unreadCount={unreadNotifCount}
+        selectedCategory={selectedCategory}
+        onSelectCategory={(catId) => {
+          setSelectedCategory(catId);
+          setActiveDashboard(null);
+          setCurrentView('category');
+        }}
         onOpenSearch={() => setIsSearchOpen(true)}
         onOpenNotifications={() => setIsNotifOpen(true)}
-        onOpenProfile={() => setIsProfileOpen(true)}
-        onOpenLogin={() => setIsLoginOpen(true)}
         onOpenUpload={() => setIsUploadOpen(true)}
-        onOpenHostingerGuide={() => setIsHostingerGuideOpen(true)}
+        onLogout={handleLogout}
         onToggleMobileSidebar={() => setIsMobileSidebarOpen(prev => !prev)}
         onGoHome={() => {
           setCurrentView('home');
@@ -418,7 +396,7 @@ export default function App() {
       <main className="flex-1 flex flex-col">
         {currentView === 'home' ? (
           <>
-            {/* Sidebar tetap di-render di Home khusus untuk fungsi Drawer Mobile global */}
+            {/* Sidebar tetap di-render khusus untuk Drawer Mobile */}
             <Sidebar
               currentView={currentView}
               selectedCategory={selectedCategory}
@@ -455,7 +433,8 @@ export default function App() {
             />
           </>
         ) : (
-          <div className="flex-1 flex flex-row w-full min-h-0 relative items-stretch">
+          <div className="flex-1 flex w-full relative">
+            {/* Sidebar di-render untuk Mobile Drawer */}
             <Sidebar
               currentView={currentView}
               selectedCategory={selectedCategory}
@@ -477,7 +456,6 @@ export default function App() {
             />
 
             <div className="flex-1 w-full min-w-0 flex flex-col overflow-y-auto">
-              
               {currentView === 'main-news' && (
                 <div className="relative flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-6xl mx-auto w-full font-sans pb-20">
                   <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
@@ -595,16 +573,11 @@ export default function App() {
         )}
       </main>
 
+      {/* Modals & Dialogs */}
       <AdminUploadModal
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
         onUploadSuccess={handleUploadSuccess}
-      />
-      <ProfileModal
-        isOpen={isProfileOpen}
-        onClose={() => setIsProfileOpen(false)}
-        user={user}
-        onSwitchRole={handleSwitchRole}
       />
       <LoginModal
         isOpen={isLoginOpen}
