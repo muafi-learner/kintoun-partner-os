@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight, ArrowLeft, Upload, AlertCircle, Clock } from 'lucide-react';
+import { ChevronRight, ArrowLeft, Upload, AlertCircle, Clock, ExternalLink } from 'lucide-react';
 import { SubcategoryCard } from '../types';
 import { PdfViewer } from './PdfViewer';
 import { EmptyModuleState } from './EmptyModuleState';
@@ -46,7 +46,6 @@ export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
             <span>Kembali</span>
           </button>
           
-          {/* HANYA MUNCUL DI DESKTOP (sm ke atas): Breadcrumb lengkap */}
           <nav className="hidden sm:flex items-center space-x-1.5 text-xs sm:text-sm font-bold text-slate-800 ml-2">
             <button
               id="breadcrumb-beranda-btn"
@@ -72,7 +71,6 @@ export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
           </nav>
         </div>
 
-        {/* Status indicator di pojok dihapus total sesuai permintaan, tombol Admin Upload tetap ada */}
         <div className="flex items-center gap-2">
           {isAdmin && (
             <button
