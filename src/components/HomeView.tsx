@@ -49,7 +49,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   }, [searchQuery]);
 
   return (
-    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 font-sans flex flex-col justify-between min-h-full">
+    <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 font-sans min-h-full pb-20">
       <div>
         <section className="mb-6 sm:mb-8">
           <div
@@ -90,7 +90,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
         </section>
 
-        {/* KOTAK PUTIH DIBUANG TOTAL, TINGGAL TEKS INFORMASI & SEARCH BAR BERJEJER */}
         <section className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 px-1">
           <p className="text-xs sm:text-sm text-slate-600 font-semibold">
             Pilih topik di bawah atau ketik kata kunci kendala untuk menemukan solusi
@@ -191,15 +190,15 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </section>
       </div>
 
-      {/* TOMBOL HUBUNGI BANTUAN TEKNISI DI POJOK KANAN BAWAH */}
-      <div className="flex justify-end pt-6 pb-4">
+      {/* TOMBOL BANTUAN TEKNISI FLOATING OVERLAPPING DI POJOK KANAN BAWAH */}
+      <div className="fixed bottom-6 right-6 z-40">
         <a
           href="https://helpdesk.kintouncoffee.id"
           target="_blank"
           rel="noopener noreferrer"
-          className="px-5 py-2.5 rounded-xl bg-[#00263f] hover:bg-[#3c586d] text-white font-black text-xs tracking-wider uppercase shadow-md transition flex items-center gap-2 cursor-pointer"
+          className="px-4.5 py-2.5 rounded-xl bg-[#00263f] hover:bg-[#3c586d] text-white font-black text-xs tracking-wider uppercase shadow-xl hover:shadow-2xl transition transform hover:scale-105 flex items-center gap-2 cursor-pointer border border-white/10"
         >
-          <span>Hubungi Bantuan Teknisi</span>
+          <span>Bantuan Teknisi</span>
           <ExternalLink className="w-4 h-4 text-slate-300" />
         </a>
       </div>
