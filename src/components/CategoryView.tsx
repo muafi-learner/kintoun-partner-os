@@ -63,13 +63,13 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
   const CategoryIcon = getIconComponent(currentCategory.iconName);
 
   return (
-    <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-6xl mx-auto w-full font-sans flex flex-col justify-between min-h-full">
+    <div className="relative flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-6xl mx-auto w-full font-sans flex flex-col justify-between min-h-full pb-20">
       <div>
         <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
           <div className="flex items-center gap-2">
             <nav className="flex items-center space-x-2 text-xs sm:text-sm font-bold text-slate-600">
               <button onClick={onBackToHome} className="hover:text-[#00263f] transition flex items-center gap-1 cursor-pointer">
-                Beranda Gerai
+                Homepage
               </button>
             </nav>
             {onOpenMobileSidebar && (
@@ -92,14 +92,14 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
             </div>
             <div className="min-w-0">
               <h1 className="text-base sm:text-xl font-black text-slate-900 uppercase tracking-tight truncate">{currentCategory.name}</h1>
-              <p className="text-[11px] sm:text-xs text-slate-500 font-medium truncate mt-0.5">{currentCategory.tagline} — Standarisasi & modul pelatihan operasional gerai</p>
+              <p className="text-[11px] sm:text-xs text-slate-500 font-medium truncate mt-0.5">{currentCategory.tagline} — Standarisasi & modul pelatihan operasional</p>
             </div>
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
           <p className="text-xs text-slate-500 font-medium">
-            Pilih modul masalah spesifik untuk membuka slide presentasi solusi & standar penanganan gerai
+            Pilih modul masalah spesifik untuk membuka slide presentasi solusi & standar penanganan
           </p>
           <div className="relative w-full sm:w-72 shrink-0">
             <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -169,14 +169,15 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
         </div>
       </div>
 
-      <div className="flex justify-end pt-8 pb-4">
+      {/* TOMBOL BANTUAN TEKNISI FLOATING OVERLAPPING DI POJOK KANAN BAWAH */}
+      <div className="fixed bottom-6 right-6 z-40">
         <a
           href="https://helpdesk.kintouncoffee.id"
           target="_blank"
           rel="noopener noreferrer"
-          className="px-5 py-2.5 rounded-xl bg-[#00263f] hover:bg-[#3c586d] text-white font-black text-xs tracking-wider uppercase shadow-md transition flex items-center gap-2 cursor-pointer"
+          className="px-4.5 py-2.5 rounded-xl bg-[#00263f] hover:bg-[#3c586d] text-white font-black text-xs tracking-wider uppercase shadow-xl hover:shadow-2xl transition transform hover:scale-105 flex items-center gap-2 cursor-pointer border border-white/10"
         >
-          <span>Hubungi Bantuan Teknisi</span>
+          <span>Bantuan Teknisi</span>
           <ExternalLink className="w-4 h-4 text-slate-300" />
         </a>
       </div>
