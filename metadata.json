@@ -1,0 +1,6 @@
+{
+  "name": "KINTOUN Operating System & Partner",
+  "description": "Sistem operasi dan portal partner operasional store Kintoun dengan manajemen dokumen PDF/PPT, panduan troubleshooting, dan hak akses administrator.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

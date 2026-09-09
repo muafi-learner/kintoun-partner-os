@@ -1,0 +1,343 @@
+import React, { useState } from 'react';
+import { 
+  PanelLeftClose, 
+  PanelLeftOpen, 
+  Home, 
+  Users, 
+  Coffee, 
+  Wrench, 
+  UserCheck, 
+  PackageCheck, 
+  Store,
+  ChevronRight,
+  X,
+  Headphones
+} from 'lucide-react';
+import { CategoryId } from '../types';
+
+interface SidebarProps {
+  currentView: string;
+  selectedCategory?: CategoryId;
+  onSelectCategory: (categoryId: CategoryId) => void;
+  onSelectHomepage: () => void;
+  isMobileOpen?: boolean;
+  onCloseMobile?: () => void;
+  onOpenTicketModal?: () => void;
+}
+
+interface NavItem {
+  id: CategoryId | 'homepage';
+  label: string;
+  shortLabel: string;
+  colorHex: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({
+  currentView,
+  selectedCategory,
+  onSelectCategory,
+  onSelectHomepage,
+  isMobileOpen = false,
+  onCloseMobile,
+  onOpenTicketModal
+}) => {
+  const [isOpen, setIsOpen] = useState(true);
+
+  // Do not render the sidebar when on the homepage
+  if (currentView === 'home') {
+    return null;
+  }
+
+  const navItems: NavItem[] = [
+    { 
+      id: 'homepage', 
+      label: 'BERANDA GERAI', 
+      shortLabel: 'Beranda',
+      colorHex: '#00263f',
+      icon: Home 
+    },
+    { 
+      id: 'customer', 
+      label: 'CUSTOMER ISSUE', 
+      shortLabel: 'Customer',
+      colorHex: '#059669',
+      icon: Users 
+    },
+    { 
+      id: 'product', 
+      label: 'PRODUCT ISSUE', 
+      shortLabel: 'Product',
+      colorHex: '#d97706',
+      icon: Coffee 
+    },
+    { 
+      id: 'equipment', 
+      label: 'EQUIPMENT ISSUE', 
+      shortLabel: 'Equipment',
+      colorHex: '#2563eb',
+      icon: Wrench 
+    },
+    { 
+      id: 'people', 
+      label: 'PEOPLE ISSUE', 
+      shortLabel: 'People',
+      colorHex: '#7c3aed',
+      icon: UserCheck 
+    },
+    { 
+      id: 'stock', 
+      label: 'STOCK & SUPPLY', 
+      shortLabel: 'Stock',
+      colorHex: '#ea580c',
+      icon: PackageCheck 
+    },
+    { 
+      id: 'store', 
+      label: 'STORE ISSUE', 
+      shortLabel: 'Store',
+      colorHex: '#0891b2',
+      icon: Store 
+    }
+  ];
+
+  return (
+    <>
+      {/* 1. DESKTOP SIDEBAR: Visible only on md screens and above, in normal layout flow */}
+      <aside
+        id="app-partner-sidebar"
+        style={{ width: isOpen ? '260px' : '68px' }}
+        className="hidden md:flex shrink-0 bg-white border-r border-[#d6cfbf] self-stretch min-h-full py-4 flex-col font-sans select-none transition-all duration-200 shadow-2xs z-10"
+      >
+        <div className="sticky top-4 flex flex-col h-fit">
+          {/* Top Header / Toggle Button */}
+          <div className={`flex items-center ${isOpen ? 'justify-between px-4 mb-3' : 'justify-center mb-3'}`}>
+            {isOpen && (
+              <span className="text-[10px] font-black uppercase tracking-widest text-[#908371]">
+                MODUL GERAI
+              </span>
+            )}
+            <button
+              id="btn-toggle-sidebar"
+              onClick={() => setIsOpen(!isOpen)}
+              className="p-1.5 rounded-lg text-slate-500 hover:text-[#00263f] hover:bg-[#eeebe1] transition cursor-pointer"
+              title={isOpen ? 'Tutup Sidebar' : 'Buka Sidebar'}
+              aria-label={isOpen ? 'Tutup Sidebar' : 'Buka Sidebar'}
+            >
+              {isOpen ? (
+                <PanelLeftClose className="w-4 h-4" />
+              ) : (
+                <PanelLeftOpen className="w-4 h-4" />
+              )}
+            </button>
+          </div>
+
+          {/* Navigation List */}
+          <nav className="flex flex-col space-y-1 px-2">
+            {navItems.map((item) => {
+              const isHomepage = item.id === 'homepage';
+              const isActive = (() => {
+                if (currentView === 'main-news') {
+                  return isHomepage;
+                }
+                if (isHomepage) {
+                  return currentView === 'home';
+                }
+                if (currentView === 'category' || currentView === 'subcategory' || currentView === 'specific-news') {
+                  return selectedCategory === item.id;
+                }
+                return false;
+              })();
+
+              const IconComponent = item.icon;
+
+              return (
+                <button
+                  key={item.id}
+                  id={`sidebar-item-${item.id}`}
+                  onClick={() => {
+                    if (isHomepage) {
+                      onSelectHomepage();
+                    } else {
+                      onSelectCategory(item.id as CategoryId);
+                    }
+                  }}
+                  title={item.label}
+                  className={`w-full text-left rounded-xl transition-all duration-150 flex items-center cursor-pointer group ${
+                    isOpen ? 'px-3 py-2.5 gap-2.5' : 'p-2.5 justify-center'
+                  } ${
+                    isActive
+                      ? 'bg-[#00263f] text-white font-black shadow-xs'
+                      : 'text-slate-700 hover:text-slate-950 hover:bg-[#eeebe1]/80 font-bold text-xs'
+                  }`}
+                >
+                  {/* Icon with active color hint */}
+                  <div 
+                    className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
+                      isActive 
+                        ? 'bg-white/15 text-white' 
+                        : 'bg-[#eeebe1]/70 text-slate-700 group-hover:bg-[#eeebe1]'
+                    }`}
+                  >
+                    <IconComponent className="w-4 h-4" />
+                  </div>
+
+                  {/* Label & Indicator when sidebar is open - full untruncated text */}
+                  {isOpen && (
+                    <div className="flex-1 flex items-center justify-between min-w-0">
+                      <span className="text-xs font-bold whitespace-nowrap tracking-tight">
+                        {item.label}
+                      </span>
+                      {isActive ? (
+                        <span 
+                          className="w-2 h-2 rounded-full shrink-0 shadow-xs ml-1.5" 
+                          style={{ backgroundColor: item.colorHex }}
+                        />
+                      ) : (
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-300 opacity-0 group-hover:opacity-100 group-hover:text-slate-400 transition shrink-0 ml-1" />
+                      )}
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </nav>
+
+          {/* Quick Support & Operational Card directly attached below list (NO huge empty gap!) */}
+          {isOpen && (
+            <div className="px-2 pt-3 mt-2 border-t border-[#d6cfbf]/60 space-y-2">
+              {onOpenTicketModal && (
+                <button
+                  id="sidebar-btn-ticket-support"
+                  onClick={onOpenTicketModal}
+                  className="w-full text-left p-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 transition flex items-center gap-2 cursor-pointer shadow-2xs group"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-amber-200/80 flex items-center justify-center shrink-0 text-amber-800">
+                    <Headphones className="w-3.5 h-3.5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <span className="text-[11px] font-extrabold block leading-tight">Butuh Bantuan Teknisi?</span>
+                    <span className="text-[9.5px] text-amber-700 font-medium">Buka Tiket Kendala Gerai</span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-amber-400 group-hover:text-amber-700 transition shrink-0" />
+                </button>
+              )}
+
+              <div className="p-2.5 rounded-xl bg-[#eeebe1]/70 border border-[#d6cfbf] text-[10px] text-slate-600 leading-relaxed">
+                <div className="flex items-center justify-between font-black text-[#00263f]">
+                  <span>Kintoun Partner OS</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" title="Sistem Aktif" />
+                </div>
+                <span className="text-[#908371] font-semibold block text-[9.5px] mt-0.5">
+                  Standar SOP Operasional 2026
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+      </aside>
+
+      {/* 2. MOBILE OFF-CANVAS DRAWER: Shown as overlay on small screens when triggered */}
+      {isMobileOpen && (
+        <div className="fixed inset-0 z-50 md:hidden flex animate-in fade-in duration-150">
+          {/* Backdrop overlay */}
+          <div 
+            className="fixed inset-0 bg-[#00263f]/60 backdrop-blur-xs transition-opacity"
+            onClick={onCloseMobile}
+            aria-hidden="true"
+          />
+
+          {/* Drawer Panel */}
+          <aside 
+            id="app-mobile-sidebar-drawer"
+            className="relative w-72 max-w-[85vw] bg-white h-full flex flex-col shadow-2xl py-4 z-10 select-none animate-in slide-in-from-left duration-200"
+          >
+            {/* Top Header with Close Button */}
+            <div className="flex items-center justify-between px-4 pb-3 mb-2 border-b border-[#d6cfbf]/60">
+              <span className="text-xs font-black uppercase tracking-widest text-[#00263f]">
+                MODUL GERAI KINTOUN
+              </span>
+              <button
+                id="btn-close-mobile-sidebar"
+                onClick={onCloseMobile}
+                className="p-1.5 rounded-lg text-slate-500 hover:text-[#00263f] hover:bg-[#eeebe1] transition cursor-pointer"
+                aria-label="Tutup Menu"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Navigation items for mobile */}
+            <nav className="flex-1 flex flex-col space-y-1.5 px-3 overflow-y-auto">
+              {navItems.map((item) => {
+                const isHomepage = item.id === 'homepage';
+                const isActive = (() => {
+                  if (currentView === 'main-news') return false;
+                  if (isHomepage) return currentView === 'home';
+                  if (currentView === 'category' || currentView === 'subcategory' || currentView === 'specific-news') {
+                    return selectedCategory === item.id;
+                  }
+                  return false;
+                })();
+                const IconComponent = item.icon;
+
+                return (
+                  <button
+                    key={`mobile-${item.id}`}
+                    id={`mobile-sidebar-item-${item.id}`}
+                    onClick={() => {
+                      if (isHomepage) {
+                        onSelectHomepage();
+                      } else {
+                        onSelectCategory(item.id as CategoryId);
+                      }
+                      if (onCloseMobile) {
+                        onCloseMobile();
+                      }
+                    }}
+                    className={`w-full text-left rounded-xl px-3.5 py-3 transition flex items-center gap-3 cursor-pointer ${
+                      isActive
+                        ? 'bg-[#00263f] text-white font-black shadow-xs'
+                        : 'text-slate-700 hover:text-slate-950 hover:bg-[#eeebe1]/80 font-bold text-xs'
+                    }`}
+                  >
+                    <div 
+                      className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 ${
+                        isActive 
+                          ? 'bg-white/15 text-white' 
+                          : 'bg-[#eeebe1] text-slate-700'
+                      }`}
+                    >
+                      <IconComponent className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 flex items-center justify-between min-w-0">
+                      <span className="text-xs font-bold truncate">
+                        {item.label}
+                      </span>
+                      {isActive ? (
+                        <span 
+                          className="w-2.5 h-2.5 rounded-full shrink-0 shadow-xs" 
+                          style={{ backgroundColor: item.colorHex }}
+                        />
+                      ) : (
+                        <ChevronRight className="w-4 h-4 text-slate-300" />
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* Footer */}
+            <div className="mt-auto px-4 pt-3 border-t border-[#d6cfbf]/60">
+              <div className="p-3 rounded-xl bg-[#eeebe1]/70 border border-[#d6cfbf] text-xs text-slate-600 font-medium">
+                <span className="font-black text-[#00263f] block text-xs">Kintoun Partner OS</span>
+                <span className="text-[#908371] text-[11px] font-semibold">Standar SOP Operasional 2026</span>
+              </div>
+            </div>
+          </aside>
+        </div>
+      )}
+    </>
+  );
+};

@@ -1,0 +1,286 @@
+import React, { useState, useMemo } from 'react';
+import { 
+  Newspaper, 
+  ArrowRight, 
+  HelpCircle, 
+  ChevronRight, 
+  FileText, 
+  ExternalLink,
+  Search,
+  Users,
+  Coffee,
+  Wrench,
+  UserCheck,
+  PackageCheck,
+  Store,
+  Sparkles,
+  X,
+  Layers
+} from 'lucide-react';
+import { CategoryId, NewsArticle } from '../types';
+import { CATEGORIES, CategoryMeta } from '../data/initialData';
+
+interface HomeViewProps {
+  mainNews: NewsArticle;
+  onSelectMainNews: () => void;
+  onSelectCategory: (catId: CategoryId) => void;
+  onOpenTicketModal: () => void;
+  onOpenUpload: () => void;
+  isAdmin: boolean;
+}
+
+export const HomeView: React.FC<HomeViewProps> = ({
+  mainNews,
+  onSelectMainNews,
+  onSelectCategory,
+  onOpenTicketModal: _onOpenTicketModal,
+  onOpenUpload: _onOpenUpload,
+  isAdmin
+}) => {
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Helper for Category Icons
+  const renderCategoryIcon = (iconName: string) => {
+    const iconClass = "w-6 h-6 shrink-0";
+    switch (iconName) {
+      case 'users':
+        return <Users className={`${iconClass} text-emerald-600`} />;
+      case 'coffee':
+        return <Coffee className={`${iconClass} text-amber-600`} />;
+      case 'wrench':
+        return <Wrench className={`${iconClass} text-blue-600`} />;
+      case 'user-check':
+        return <UserCheck className={`${iconClass} text-purple-600`} />;
+      case 'package':
+        return <PackageCheck className={`${iconClass} text-orange-600`} />;
+      case 'store':
+        return <Store className={`${iconClass} text-sky-600`} />;
+      default:
+        return <Layers className={`${iconClass} text-slate-600`} />;
+    }
+  };
+
+  // Filter categories based on search
+  const filteredCategories = useMemo(() => {
+    if (!searchQuery.trim()) return CATEGORIES;
+    const q = searchQuery.toLowerCase();
+    return CATEGORIES.filter((cat) => {
+      const matchName = cat.name.toLowerCase().includes(q);
+      const matchTagline = cat.tagline?.toLowerCase().includes(q);
+      const matchItems = cat.items.some((item) => item.toLowerCase().includes(q));
+      return matchName || matchTagline || matchItems;
+    });
+  }, [searchQuery]);
+
+  return (
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 font-sans">
+      {/* 1. NOTIFIKASI & PEMBARUAN INFORMASI RESMI (Broadcast Banner) */}
+      <section className="mb-8 sm:mb-10">
+        <div
+          id="main-news-banner"
+          onClick={onSelectMainNews}
+          className="group relative w-full rounded-2xl bg-white hover:bg-slate-50/90 border border-[#d6cfbf] p-5 sm:p-7 cursor-pointer transition-all duration-200 shadow-sm hover:shadow-md flex flex-col justify-between overflow-hidden"
+        >
+          {/* Accent top gradient stripe with Kintoun brand tones */}
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r from-[#00263f] via-[#3c586d] to-[#908371]"></div>
+
+          {/* Top Label & Status */}
+          {isAdmin && (
+            <div className="flex justify-end mb-2">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-900 border border-amber-300">
+                Admin Editable
+              </span>
+            </div>
+          )}
+
+          {/* Title & Description */}
+          <div className="py-2 max-w-4xl">
+            <h2 className="text-lg sm:text-2xl font-black text-slate-900 group-hover:text-[#00263f] transition leading-snug">
+              {mainNews.title}
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1.5 leading-relaxed line-clamp-2">
+              {mainNews.subtitle} — {mainNews.summary}
+            </p>
+          </div>
+
+          {/* Footer Bar */}
+          <div className="flex flex-wrap items-center justify-between pt-3 mt-3 border-t border-slate-100 text-xs font-semibold text-slate-500 gap-2">
+            <div className="flex items-center gap-3">
+              <span className="flex items-center gap-1.5 bg-[#eeebe1]/80 px-2.5 py-1 rounded-md text-slate-800 font-mono text-[11px] border border-[#d6cfbf]/60">
+                <FileText className="w-3.5 h-3.5 text-[#00263f]" />
+                {mainNews.pdfFileName} ({mainNews.pdfFileSize || '2.4 MB'})
+              </span>
+              <span className="text-[11px] text-slate-400 hidden sm:inline">
+                Klik untuk menampilkan slide materi langsung
+              </span>
+            </div>
+
+            <span className="inline-flex items-center gap-1.5 text-[#00263f] group-hover:text-[#3c586d] font-bold text-xs group-hover:translate-x-1 transition">
+              Buka Materi Slide Presentasi <ArrowRight className="w-4 h-4" />
+            </span>
+          </div>
+        </div>
+      </section>
+
+      {/* 2. OPERATIONAL QUICK SCREENING & SEARCH BAR */}
+      <section className="mb-8">
+        <div className="bg-white rounded-2xl border border-[#d6cfbf] p-5 shadow-xs">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div>
+              <h2 className="text-lg sm:text-xl font-black text-slate-900 tracking-tight flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-[#908371]" />
+                FAQ & Panduan Solusi Cepat Kendala Gerai
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
+                Pilih topik di bawah atau ketik kata kunci kendala untuk menemukan solusi langsung dalam hitungan detik.
+              </p>
+            </div>
+
+            {/* Quick Search Input */}
+            <div className="relative w-full md:w-80 shrink-0">
+              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Cari kendala (cth: mesin, resep, komplain)..."
+                className="w-full pl-9.5 pr-8 py-2.5 rounded-xl border border-[#d6cfbf] bg-[#eeebe1]/30 focus:bg-white text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00263f] focus:border-transparent transition"
+              />
+              {searchQuery && (
+                <button 
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+                  title="Hapus Pencarian"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 3. ISSUE AND TROUBLESHOOTING CARDS GRID (6 Cards with High-Contrast Layout) */}
+      <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 mb-12">
+        {filteredCategories.map((cat) => (
+          <div
+            key={cat.id}
+            id={`issue-card-${cat.id}`}
+            onClick={() => onSelectCategory(cat.id)}
+            className="group bg-white hover:bg-[#fdfcfb] rounded-2xl p-5 sm:p-6 border border-[#d6cfbf] hover:border-[#b8ad98] flex flex-col justify-between cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-lg shadow-xs min-h-[330px] select-none"
+          >
+            <div>
+              {/* Header: Icon and Category Name (Minimalist & Easy to Screen) */}
+              <div className="flex items-center gap-3 mb-3">
+                <div className={`p-2.5 sm:p-3 rounded-xl border ${cat.accentLight} shadow-2xs shrink-0`}>
+                  {renderCategoryIcon(cat.iconName)}
+                </div>
+                <div>
+                  <h3 className="text-sm sm:text-base font-black text-slate-900 uppercase tracking-tight leading-snug group-hover:text-[#00263f] transition">
+                    {cat.name}
+                  </h3>
+                </div>
+              </div>
+
+              <div className="h-px bg-slate-100 my-3"></div>
+
+              {/* Sub-items Checklist - Clear, High Contrast & Left-Aligned for Fast F-pattern Screening */}
+              <div className="mb-4">
+                <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
+                  Daftar Panduan & Prosedur:
+                </p>
+                <ul className="space-y-2">
+                  {cat.items.map((item, idx) => {
+                    const isMatched = searchQuery && item.toLowerCase().includes(searchQuery.toLowerCase());
+                    return (
+                      <li 
+                        key={idx}
+                        className={`text-xs font-semibold flex items-center justify-between p-1.5 rounded-lg transition ${
+                          isMatched 
+                            ? 'bg-amber-100 text-amber-900 font-bold' 
+                            : 'text-slate-700 group-hover:text-slate-900 group-hover:bg-slate-100/70'
+                        }`}
+                        title={item}
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <span 
+                            className="w-1.5 h-1.5 rounded-full shrink-0" 
+                            style={{ backgroundColor: cat.colorHex }}
+                          />
+                          <span className="truncate">{item}</span>
+                        </div>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-500 shrink-0" />
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            </div>
+
+            {/* Bottom Button: High Contrast with Arrow */}
+            <button
+              id={`btn-solve-${cat.id}`}
+              type="button"
+              className="w-full py-2.5 px-4 rounded-xl text-xs font-black text-white transition flex items-center justify-between shadow-xs group-hover:brightness-105 active:scale-[0.98] mt-2 cursor-pointer"
+              style={{ backgroundColor: cat.colorHex }}
+            >
+              <span className="tracking-wider uppercase">{cat.solveButtonText}</span>
+              <ArrowRight className="w-4 h-4 shrink-0 transition-transform group-hover:translate-x-1" />
+            </button>
+          </div>
+        ))}
+
+        {filteredCategories.length === 0 && (
+          <div className="col-span-full py-12 text-center bg-white rounded-2xl border border-dashed border-slate-300 p-8">
+            <p className="text-sm font-bold text-slate-600">
+              Tidak ada panduan yang cocok dengan pencarian "{searchQuery}"
+            </p>
+            <p className="text-xs text-slate-400 mt-1">
+              Coba gunakan kata kunci lain seperti "mesin", "resep", "komplain", atau reset filter.
+            </p>
+            <button
+              onClick={() => setSearchQuery('')}
+              className="mt-4 px-4 py-2 bg-[#00263f] hover:bg-[#3c586d] text-white rounded-xl text-xs font-bold transition cursor-pointer"
+            >
+              Reset Pencarian
+            </button>
+          </div>
+        )}
+      </section>
+
+      {/* 4. QUICK ACTION: BUTUH BANTUAN TEKNISI / ESKALASI */}
+      <section className="text-center pt-2 pb-12">
+        <div className="relative flex items-center justify-center mb-8">
+          <div className="w-full border-t border-[#d6cfbf]"></div>
+          <span className="absolute bg-[#eeebe1] px-4 text-xs font-black tracking-widest text-[#00263f] uppercase">
+            ESKALASI & BANTUAN CEPAT
+          </span>
+        </div>
+
+        <div className="bg-white max-w-xl mx-auto rounded-2xl border border-[#d6cfbf] p-6 sm:p-7 shadow-sm text-center flex flex-col items-center">
+          <div className="w-12 h-12 rounded-full bg-[#00263f]/10 flex items-center justify-center text-[#00263f] mb-3 shadow-2xs">
+            <HelpCircle className="w-6 h-6" />
+          </div>
+          <h3 className="text-base sm:text-lg font-black text-slate-900">
+            Kendala Tidak Ditemukan di Panduan Gerai?
+          </h3>
+          <p className="text-xs text-slate-600 font-medium mt-1 mb-5 max-w-md leading-relaxed">
+            Jika terjadi kerusakan darurat pada mesin atau kendala operasional yang membutuhkan penanganan langsung oleh tim teknisi Kintoun, gunakan portal bantuan eksternal.
+          </p>
+
+          <a
+            id="btn-butuh-bantuan"
+            href="https://helpdesk.kintoun.id"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full sm:w-auto px-8 py-3 rounded-xl bg-[#00263f] hover:bg-[#3c586d] text-white font-black text-xs sm:text-sm tracking-wider uppercase shadow-md hover:shadow-lg transition transform hover:scale-102 flex items-center justify-center gap-3 cursor-pointer"
+            title="Buka Website Bantuan / Helpdesk Eksternal"
+          >
+            <span>HUBUNGI BANTUAN TEKNISI</span>
+            <ExternalLink className="w-4 h-4 text-slate-300" />
+          </a>
+        </div>
+      </section>
+    </div>
+  );
+};
