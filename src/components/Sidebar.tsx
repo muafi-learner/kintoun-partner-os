@@ -218,7 +218,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               })}
             </nav>
 
-            {/* Footer Drawer: Log Out */}
+            {/* Footer Drawer: LOGOUT */}
             <div className="mt-auto pt-3 pb-2 px-3 border-t border-[#d6cfbf]/60">
               <button
                 onClick={() => {
@@ -230,7 +230,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <div className="w-8 h-8 rounded-lg bg-[#eeebe1] flex items-center justify-center shrink-0">
                   <LogOut className="w-4 h-4" />
                 </div>
-                <span>LOG OUT</span>
+                <span>LOGOUT</span>
               </button>
             </div>
           </aside>
