@@ -38,14 +38,12 @@ import { EmptyModuleState } from './components/EmptyModuleState';
 import { STORAGE_KEYS } from './services/storage';
 
 export default function App() {
-  // Navigation State
   const [currentView, setCurrentView] = useState<'home' | 'main-news' | 'category' | 'specific-news' | 'subcategory' | 'dashboard'>('home');
   const [selectedCategory, setSelectedCategory] = useState<CategoryId>('customer');
   const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>('customer-complaint');
   const [activeDashboard, setActiveDashboard] = useState<string | null>(null);
   const [targetPdfSlide, setTargetPdfSlide] = useState<number>(1);
 
-  // User & Authority State
   const [role, setRole] = useState<Role>(() => {
     return (localStorage.getItem(STORAGE_KEYS.CURRENT_ROLE) as Role) || 'user';
   });
@@ -74,7 +72,6 @@ export default function App() {
     localStorage.setItem(STORAGE_KEYS.CURRENT_ROLE, role);
   }, [role]);
 
-  // Content State
   const [mainNews, setMainNews] = useState<NewsArticle>(() => {
     const saved = localStorage.getItem(STORAGE_KEYS.MAIN_NEWS);
     return saved ? JSON.parse(saved) : INITIAL_MAIN_NEWS;
@@ -130,7 +127,6 @@ export default function App() {
     ];
   });
 
-  // Modals state
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isLoginOpen, setIsLoginOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -140,7 +136,6 @@ export default function App() {
   const [isHostingerGuideOpen, setIsHostingerGuideOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // Sync state to LocalStorage
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.MAIN_NEWS, JSON.stringify(mainNews));
   }, [mainNews]);
@@ -161,7 +156,6 @@ export default function App() {
     localStorage.setItem(STORAGE_KEYS.TICKETS, JSON.stringify(tickets));
   }, [tickets]);
 
-  // Auth Handlers
   const handleLogin = (newProfile: UserProfile) => {
     setUser(newProfile);
     setRole(newProfile.role);
@@ -202,7 +196,6 @@ export default function App() {
     }
   };
 
-  // Search Navigation Handlers
   const handleNavigateToSubcategory = (catId: CategoryId, subcatId: string, targetSlide?: number) => {
     setSelectedCategory(catId);
     setSelectedSubcategoryId(subcatId);
@@ -227,7 +220,6 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Handlers
   const handleUploadSuccess = (payload: {
     targetType: 'main-news' | 'specific-news' | 'subcategory';
     categoryId?: CategoryId;
@@ -393,7 +385,6 @@ export default function App() {
 
   const currentSubcategory = subcategories.find(s => s.id === selectedSubcategoryId) || subcategories[0];
   const currentSpecificNews = specificNews[selectedCategory] || specificNews['customer'];
-
   const unreadNotifCount = notifications.filter(n => !n.read).length;
 
   return (
@@ -411,31 +402,52 @@ export default function App() {
         onOpenLogin={() => setIsLoginOpen(true)}
         onOpenUpload={() => setIsUploadOpen(true)}
         onOpenHostingerGuide={() => setIsHostingerGuideOpen(true)}
-        onToggleMobileSidebar={currentView !== 'home' ? () => setIsMobileSidebarOpen(prev => !prev) : undefined}
+        onToggleMobileSidebar={() => setIsMobileSidebarOpen(prev => !prev)}
         onGoHome={() => {
           setCurrentView('home');
           setActiveDashboard(null);
         }}
       />
 
-      {/* Main View Router */}
       <main className="flex-1 flex flex-col">
         {currentView === 'home' ? (
-          <HomeView
-            mainNews={mainNews}
-            onSelectMainNews={() => {
-              setTargetPdfSlide(1);
-              setCurrentView('main-news');
-            }}
-            onSelectCategory={(catId) => {
-              setSelectedCategory(catId);
-              setActiveDashboard(null);
-              setCurrentView('category');
-            }}
-            onOpenTicketModal={() => setIsTicketOpen(true)}
-            onOpenUpload={() => setIsUploadOpen(true)}
-            isAdmin={role === 'admin'}
-          />
+          <>
+            {/* Sidebar tetap di-render di Home khusus untuk fungsi Drawer Mobile global */}
+            <Sidebar
+              currentView={currentView}
+              selectedCategory={selectedCategory}
+              onSelectCategory={(catId) => {
+                setSelectedCategory(catId);
+                setActiveDashboard(null);
+                setCurrentView('category');
+              }}
+              onSelectHomepage={() => {
+                setCurrentView('home');
+                setActiveDashboard(null);
+              }}
+              isMobileOpen={isMobileSidebarOpen}
+              onCloseMobile={() => setIsMobileSidebarOpen(false)}
+              onOpenTicketModal={() => setIsTicketOpen(true)}
+              role={role}
+              user={user}
+              onLogout={handleLogout}
+            />
+            <HomeView
+              mainNews={mainNews}
+              onSelectMainNews={() => {
+                setTargetPdfSlide(1);
+                setCurrentView('main-news');
+              }}
+              onSelectCategory={(catId) => {
+                setSelectedCategory(catId);
+                setActiveDashboard(null);
+                setCurrentView('category');
+              }}
+              onOpenTicketModal={() => setIsTicketOpen(true)}
+              onOpenUpload={() => setIsUploadOpen(true)}
+              isAdmin={role === 'admin'}
+            />
+          </>
         ) : (
           <div className="flex-1 flex flex-row w-full min-h-0 relative items-stretch">
             <Sidebar
@@ -453,16 +465,17 @@ export default function App() {
               isMobileOpen={isMobileSidebarOpen}
               onCloseMobile={() => setIsMobileSidebarOpen(false)}
               onOpenTicketModal={() => setIsTicketOpen(true)}
+              role={role}
+              user={user}
+              onLogout={handleLogout}
             />
 
             <div className="flex-1 w-full min-w-0 flex flex-col overflow-y-auto">
               
-              {/* === MAIN NEWS VIEW (Disesuaikan agar seragam dengan Category) === */}
               {currentView === 'main-news' && (
                 <div className="relative flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-6xl mx-auto w-full font-sans pb-20">
                   <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                     <div className="flex items-center gap-2">
-                      {/* TAMPILAN MOBILE: Tombol Kembali (Disembunyikan di Desktop) */}
                       <button
                         onClick={() => setCurrentView('home')}
                         className="md:hidden inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-[#d6cfbf] hover:bg-[#eeebe1] hover:text-[#00263f] transition shadow-xs cursor-pointer"
@@ -471,7 +484,6 @@ export default function App() {
                         <span>Kembali</span>
                       </button>
                     </div>
-
                     <div className="flex items-center gap-2">
                       {role === 'admin' && (
                         <button
@@ -513,7 +525,6 @@ export default function App() {
                     )}
                   </div>
 
-                  {/* TOMBOL BANTUAN TEKNISI FLOATING OVERLAPPING DI POJOK KANAN BAWAH */}
                   <div className="fixed bottom-6 right-6 z-40">
                     <a
                       href="https://helpdesk.kintouncoffee.id"
@@ -578,20 +589,17 @@ export default function App() {
         )}
       </main>
 
-      {/* Modals & Dialogs */}
       <AdminUploadModal
         isOpen={isUploadOpen}
         onClose={() => setIsUploadOpen(false)}
         onUploadSuccess={handleUploadSuccess}
       />
-
       <ProfileModal
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
         user={user}
         onSwitchRole={handleSwitchRole}
       />
-
       <LoginModal
         isOpen={isLoginOpen}
         onClose={() => setIsLoginOpen(false)}
@@ -599,7 +607,6 @@ export default function App() {
         onLogin={handleLogin}
         onLogout={handleLogout}
       />
-
       <NotificationModal
         isOpen={isNotifOpen}
         onClose={() => setIsNotifOpen(false)}
@@ -609,7 +616,6 @@ export default function App() {
           setNotifications(prev => prev.map(n => ({ ...n, read: true })));
         }}
       />
-
       <SearchModal
         isOpen={isSearchOpen}
         onClose={() => setIsSearchOpen(false)}
@@ -625,13 +631,11 @@ export default function App() {
         onNavigateToMainNews={handleNavigateToMainNews}
         onNavigateToSpecificNews={handleNavigateToSpecificNews}
       />
-
       <TicketModal
         isOpen={isTicketOpen}
         onClose={() => setIsTicketOpen(false)}
         onSubmitTicket={handleCreateTicket}
       />
-
       <HostingerGuideModal
         isOpen={isHostingerGuideOpen}
         onClose={() => setIsHostingerGuideOpen(false)}
