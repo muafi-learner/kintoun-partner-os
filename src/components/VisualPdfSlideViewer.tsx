@@ -59,11 +59,7 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
     setErrorMessage(null);
 
     if (renderTaskRef.current) {
-      try {
-        renderTaskRef.current.cancel();
-      } catch {
-        // ignore
-      }
+      try { renderTaskRef.current.cancel(); } catch { }
     }
 
     const initPdfWithTypedArray = (typedArray: Uint8Array) => {
@@ -86,9 +82,8 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
           })
           .catch((err: any) => {
             if (isCancelled) return;
-            console.error('Error loading PDF document:', err);
             setIsLoading(false);
-            setErrorMessage(err?.message || 'Tidak dapat memproses visual berkas PDF. Pastikan file tidak rusak.');
+            setErrorMessage(err?.message || 'Tidak dapat memproses visual berkas PDF.');
           });
       } catch (err: any) {
         if (isCancelled) return;
@@ -103,8 +98,7 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
         if (isCancelled) return;
         try {
           const arrayBuffer = reader.result as ArrayBuffer;
-          const typedArray = new Uint8Array(arrayBuffer);
-          initPdfWithTypedArray(typedArray);
+          initPdfWithTypedArray(new Uint8Array(arrayBuffer));
         } catch (err: any) {
           if (isCancelled) return;
           setIsLoading(false);
@@ -123,26 +117,20 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
       try {
         if (fileId) {
           const cachedData = getCachedPdf(fileId);
-          if (cachedData) {
-            initPdfWithTypedArray(cachedData);
-            return;
-          }
+          if (cachedData) { initPdfWithTypedArray(cachedData); return; }
         }
         if (rawFile instanceof Blob || (typeof File !== 'undefined' && rawFile instanceof File)) {
-          readRawFileAsArrayBuffer(rawFile);
-          return;
+          readRawFileAsArrayBuffer(rawFile); return;
         }
         if (pdfData) {
           if (pdfData instanceof Uint8Array) {
             if (fileId) setCachedPdf(fileId, pdfData);
-            initPdfWithTypedArray(pdfData);
-            return;
+            initPdfWithTypedArray(pdfData); return;
           }
           if (pdfData instanceof ArrayBuffer) {
             const bytes = new Uint8Array(pdfData);
             if (fileId) setCachedPdf(fileId, bytes);
-            initPdfWithTypedArray(bytes);
-            return;
+            initPdfWithTypedArray(bytes); return;
           }
         }
         if (fileId) {
@@ -150,20 +138,15 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
           if (fileRecord?.data) {
             const dataObj = fileRecord.data as any;
             if (dataObj instanceof Blob || (typeof File !== 'undefined' && dataObj instanceof File)) {
-              readRawFileAsArrayBuffer(dataObj);
-              return;
+              readRawFileAsArrayBuffer(dataObj); return;
             }
             if (typeof fileRecord.data === 'string' && fileRecord.data.startsWith('data:')) {
               const base64Data = fileRecord.data.split(',')[1] || fileRecord.data;
               const binaryString = window.atob(base64Data);
-              const len = binaryString.length;
-              const bytes = new Uint8Array(len);
-              for (let i = 0; i < len; i++) {
-                bytes[i] = binaryString.charCodeAt(i);
-              }
+              const bytes = new Uint8Array(binaryString.length);
+              for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
               setCachedPdf(fileId, bytes);
-              initPdfWithTypedArray(bytes);
-              return;
+              initPdfWithTypedArray(bytes); return;
             }
           }
         }
@@ -171,34 +154,27 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
         if (sourceUrl && sourceUrl.startsWith('data:')) {
           const base64Data = sourceUrl.split(',')[1] || sourceUrl;
           const binaryString = window.atob(base64Data);
-          const len = binaryString.length;
-          const bytes = new Uint8Array(len);
-          for (let i = 0; i < len; i++) {
-            bytes[i] = binaryString.charCodeAt(i);
-          }
+          const bytes = new Uint8Array(binaryString.length);
+          for (let i = 0; i < binaryString.length; i++) bytes[i] = binaryString.charCodeAt(i);
           if (fileId) setCachedPdf(fileId, bytes);
-          initPdfWithTypedArray(bytes);
-          return;
+          initPdfWithTypedArray(bytes); return;
         }
         if (sourceUrl && sourceUrl.trim() !== '' && !sourceUrl.startsWith('blob:')) {
           try {
             const response = await fetch(sourceUrl);
             if (response.ok) {
-              const blob = await response.blob();
-              readRawFileAsArrayBuffer(blob);
-              return;
+              readRawFileAsArrayBuffer(await response.blob()); return;
             }
           } catch (fetchErr) {
-            console.warn('Gagal fetch sourceUrl, menggunakan fallback dokumen:', fetchErr);
+            console.warn('Gagal fetch sourceUrl', fetchErr);
           }
         }
-        const samplePdf = generateSamplePdfUint8Array(title, subtitle || 'Standar Prosedur Operasional Kintoun 2026');
+        const samplePdf = generateSamplePdfUint8Array(title, subtitle || 'Standar Prosedur Operasional');
         initPdfWithTypedArray(samplePdf);
       } catch (err: any) {
         if (isCancelled) return;
-        console.error('Error in loadPdf:', err);
         setIsLoading(false);
-        setErrorMessage(err?.message || 'Tidak dapat memproses visual berkas PDF. Pastikan file tidak rusak dan diekspor dengan benar.');
+        setErrorMessage(err?.message || 'Gagal memproses visual berkas PDF.');
       }
     };
 
@@ -206,13 +182,7 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
 
     return () => {
       isCancelled = true;
-      if (renderTaskRef.current) {
-        try {
-          renderTaskRef.current.cancel();
-        } catch {
-          // ignore
-        }
-      }
+      if (renderTaskRef.current) { try { renderTaskRef.current.cancel(); } catch { } }
     };
   }, [pdfUrl, pdfDataUrl, pdfData, rawFile, fileId]);
 
@@ -221,19 +191,12 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
     const renderPage = async () => {
       if (!pdfDocRef.current || !canvasRef.current || numPages === 0) return;
       try {
-        if (renderTaskRef.current) {
-          try {
-            renderTaskRef.current.cancel();
-          } catch {
-            // ignore
-          }
-        }
+        if (renderTaskRef.current) { try { renderTaskRef.current.cancel(); } catch { } }
 
         const page = await pdfDocRef.current.getPage(currentPage);
         if (isCancelled) return;
 
         const canvas = canvasRef.current;
-        if (!canvas) return;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
@@ -254,41 +217,25 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
 
         ctx.setTransform(outputScale, 0, 0, outputScale, 0, 0);
 
-        const renderContext = {
-          canvasContext: ctx,
-          viewport: viewport
-        };
-
-        const renderTask = page.render(renderContext);
+        const renderTask = page.render({ canvasContext: ctx, viewport: viewport });
         renderTaskRef.current = renderTask;
         await renderTask.promise;
       } catch (err: any) {
-        if (err?.name !== 'RenderingCancelledException') {
-          console.error('Error rendering page:', err);
-        }
+        if (err?.name !== 'RenderingCancelledException') console.error(err);
       }
     };
-
     renderPage();
-
-    return () => {
-      isCancelled = true;
-    };
+    return () => { isCancelled = true; };
   }, [currentPage, scale, rotation, numPages]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') {
-        if (currentPage < numPages) {
-          setCurrentPage((prev) => prev + 1);
-        }
+        if (currentPage < numPages) setCurrentPage((prev) => prev + 1);
       } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
-        if (currentPage > 1) {
-          setCurrentPage((prev) => prev - 1);
-        }
+        if (currentPage > 1) setCurrentPage((prev) => prev - 1);
       }
     };
-
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentPage, numPages]);
@@ -296,7 +243,6 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
   const toggleFullscreen = () => {
     const element = containerRef.current;
     if (!element) return;
-
     if (!document.fullscreenElement) {
       element.requestFullscreen?.().then(() => setIsFullscreen(true)).catch(() => {});
     } else {
@@ -305,9 +251,7 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
   };
 
   useEffect(() => {
-    const handleFsChange = () => {
-      setIsFullscreen(Boolean(document.fullscreenElement));
-    };
+    const handleFsChange = () => setIsFullscreen(Boolean(document.fullscreenElement));
     document.addEventListener('fullscreenchange', handleFsChange);
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
@@ -316,13 +260,12 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
     <div 
       ref={containerRef}
       id="visual-pdf-viewer-container"
-      className={`w-full bg-[#f6f4ee] rounded-2xl border border-[#d6cfbf] shadow-sm flex flex-col overflow-hidden select-none transition-all ${
-        isFullscreen ? 'fixed inset-0 z-50 rounded-none border-none bg-slate-950' : ''
+      className={`w-full flex flex-col overflow-hidden select-none transition-all ${
+        isFullscreen ? 'bg-slate-950 rounded-none border-none' : 'bg-[#f6f4ee] rounded-2xl border border-[#d6cfbf] shadow-sm'
       }`}
     >
       {/* Top Toolbar */}
       <div className="bg-[#00263f] text-slate-200 px-4 py-3 flex flex-wrap items-center justify-between gap-3 border-b border-[#3c586d]/40">
-        {/* Document Info */}
         <div className="flex items-center gap-3 min-w-0">
           <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 border border-emerald-500/30">
             <FileText className="w-4 h-4" />
@@ -332,85 +275,49 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
               {fileName || title}
             </h4>
             <p className="text-[11px] text-[#c0c9ce] flex items-center gap-1.5 font-medium">
-              <span>{fileSize}</span>
-              <span>•</span>
-              <span className="text-emerald-400 font-bold">Visual Slide PPT</span>
+              <span>{fileSize}</span> <span>•</span> <span className="text-emerald-400 font-bold">Visual Slide PPT</span>
             </p>
           </div>
         </div>
 
         {/* Action Controls */}
         <div className="flex items-center gap-2">
-          {/* Zoom controls */}
           <div className="flex items-center gap-1 bg-slate-800/80 rounded-lg p-1 text-xs border border-slate-700/50">
-            <button
-              id="pdf-zoom-out"
-              onClick={() => setScale((prev) => Math.max(prev - 0.15, 0.6))}
-              className="p-1 hover:bg-slate-700 rounded text-slate-300 hover:text-white transition cursor-pointer"
-              title="Perkecil Slide"
-            >
+            <button onClick={() => setScale((prev) => Math.max(prev - 0.15, 0.6))} className="p-1 hover:bg-slate-700 rounded text-slate-300 hover:text-white transition cursor-pointer" title="Perkecil Slide">
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
-            <span className="px-1.5 font-mono text-[11px] text-slate-300">
-              {Math.round(scale * 100)}%
-            </span>
-            <button
-              id="pdf-zoom-in"
-              onClick={() => setScale((prev) => Math.min(prev + 0.15, 1.8))}
-              className="p-1 hover:bg-slate-700 rounded text-slate-300 hover:text-white transition cursor-pointer"
-              title="Perbesar Slide"
-            >
+            <span className="px-1.5 font-mono text-[11px] text-slate-300">{Math.round(scale * 100)}%</span>
+            <button onClick={() => setScale((prev) => Math.min(prev + 0.15, 1.8))} className="p-1 hover:bg-slate-700 rounded text-slate-300 hover:text-white transition cursor-pointer" title="Perbesar Slide">
               <ZoomIn className="w-3.5 h-3.5" />
             </button>
           </div>
 
-          {/* Download button - Hanya untuk Admin */}
           {isAdmin && pdfUrl && (
-            <a
-              id="pdf-download-btn"
-              href={pdfUrl}
-              download={fileName}
-              className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-800/80 hover:bg-slate-700 rounded-lg text-xs text-slate-200 hover:text-white font-semibold transition border border-slate-700/50 cursor-pointer"
-              title="Unduh Berkas Asli"
-            >
-              <Download className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Unduh</span>
+            <a href={pdfUrl} download={fileName} className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-800/80 hover:bg-slate-700 rounded-lg text-xs text-slate-200 hover:text-white font-semibold transition border border-slate-700/50 cursor-pointer" title="Unduh Berkas Asli">
+              <Download className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Unduh</span>
             </a>
           )}
 
-          {/* Fullscreen toggle */}
-          <button
-            id="pdf-fullscreen-btn"
-            onClick={toggleFullscreen}
-            className="p-1.5 bg-slate-800/80 hover:bg-slate-700 rounded-lg text-slate-300 hover:text-white transition cursor-pointer border border-slate-700/50"
-            title={isFullscreen ? 'Keluar Layar Penuh' : 'Layar Penuh (Mode Presentasi Gerai)'}
-          >
+          <button onClick={toggleFullscreen} className="p-1.5 bg-slate-800/80 hover:bg-slate-700 rounded-lg text-slate-300 hover:text-white transition cursor-pointer border border-slate-700/50" title="Layar Penuh">
             {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
           </button>
 
-          {/* Admin Replace Button */}
           {isAdmin && onReplacePdf && (
-            <button
-              id="admin-replace-pdf-btn"
-              onClick={onReplacePdf}
-              className="ml-1 px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-lg transition shadow-sm cursor-pointer flex items-center gap-1"
-            >
-              <Upload className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Ganti File</span>
+            <button onClick={onReplacePdf} className="ml-1 px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-lg transition shadow-sm cursor-pointer flex items-center gap-1">
+              <Upload className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Ganti File</span>
             </button>
           )}
         </div>
       </div>
 
-      {/* Main Canvas Display Area */}
-      <div className={`flex-1 p-4 sm:p-6 flex items-center justify-center overflow-auto min-h-[420px] max-h-[720px] ${
-        isFullscreen ? 'bg-slate-950 min-h-screen max-h-screen' : 'bg-[#e7e3d8]/50'
+      {/* Main Canvas Display Area - Fixed Fullscreen Layout */}
+      <div className={`flex-1 p-4 sm:p-6 flex items-center justify-center overflow-auto ${
+        isFullscreen ? 'bg-slate-950 h-full' : 'bg-[#e7e3d8]/50 min-h-[420px] max-h-[720px]'
       }`}>
         {isLoading && (
           <div className="flex flex-col items-center justify-center p-12 text-center text-slate-600">
             <Loader2 className="w-8 h-8 animate-spin text-[#00263f] mb-3" />
-            <p className="text-sm font-bold text-slate-800">Menyiapkan Visual Slide PPT...</p>
-            <p className="text-xs text-slate-500 mt-1">Merender halaman presentasi secara langsung dari berkas PDF</p>
+            <p className="text-sm font-bold text-slate-800">Menyiapkan Visual Slide...</p>
           </div>
         )}
         {errorMessage && !isLoading && (
@@ -419,37 +326,13 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
               <AlertCircle className="w-6 h-6" />
             </div>
             <h4 className="text-base font-black text-slate-900 mb-1">Gagal Membuka Visual Slide</h4>
-            <p className="text-xs text-slate-600 leading-relaxed mb-4">{errorMessage}</p>
-            <div className="flex items-center justify-center gap-2">
-              <button
-                onClick={() => window.location.reload()}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition cursor-pointer"
-              >
-                <RefreshCw className="w-3.5 h-3.5" />
-                <span>Muat Ulang</span>
-              </button>
-              {isAdmin && onReplacePdf && (
-                <button
-                  onClick={onReplacePdf}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold bg-amber-400 hover:bg-amber-300 text-slate-950 transition cursor-pointer"
-                >
-                  <Upload className="w-3.5 h-3.5" />
-                  <span>Unggah Ulang PDF</span>
-                </button>
-              )}
-            </div>
+            <p className="text-xs text-slate-600 mb-4">{errorMessage}</p>
           </div>
         )}
         
-        {/* Canvas for rendering PDF Page */}
-        <div 
-          className={`flex justify-center items-center ${isLoading || errorMessage ? 'hidden' : 'block'}`}
-        >
-          <div className="bg-white rounded-xl shadow-xl overflow-hidden border border-slate-300/80 transition-shadow hover:shadow-2xl">
-            <canvas 
-              ref={canvasRef} 
-              className="block max-w-full h-auto cursor-default"
-            />
+        <div className={`flex justify-center items-center ${isLoading || errorMessage ? 'hidden' : 'block'}`}>
+          <div className="bg-white rounded-xl shadow-xl overflow-hidden border border-slate-300/80">
+            <canvas ref={canvasRef} className="block max-w-full h-auto cursor-default" />
           </div>
         </div>
       </div>
@@ -458,46 +341,15 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
       {numPages > 0 && !isLoading && !errorMessage && (
         <div className="bg-white px-4 py-3 border-t border-[#d6cfbf] flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <button
-              id="pdf-prev-slide-btn"
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-              disabled={currentPage <= 1}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg border border-[#d6cfbf] bg-white text-slate-700 hover:bg-[#eeebe1] disabled:opacity-40 disabled:pointer-events-none transition cursor-pointer"
-            >
-              <ChevronLeft className="w-4 h-4" />
-              <span>Sebelumnya</span>
+            <button onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))} disabled={currentPage <= 1} className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg border border-[#d6cfbf] bg-white text-slate-700 hover:bg-[#eeebe1] disabled:opacity-40 transition cursor-pointer">
+              <ChevronLeft className="w-4 h-4" /> <span>Sebelumnya</span>
             </button>
-            <button
-              id="pdf-next-slide-btn"
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, numPages))}
-              disabled={currentPage >= numPages}
-              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg border border-[#d6cfbf] bg-white text-slate-700 hover:bg-[#eeebe1] disabled:opacity-40 disabled:pointer-events-none transition cursor-pointer"
-            >
-              <span>Selanjutnya</span>
-              <ChevronRight className="w-4 h-4" />
+            <button onClick={() => setCurrentPage((prev) => Math.min(prev + 1, numPages))} disabled={currentPage >= numPages} className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-bold rounded-lg border border-[#d6cfbf] bg-white text-slate-700 hover:bg-[#eeebe1] disabled:opacity-40 transition cursor-pointer">
+              <span>Selanjutnya</span> <ChevronRight className="w-4 h-4" />
             </button>
           </div>
-
-          {/* Page status */}
           <div className="text-xs font-bold text-slate-600">
             Slide <span className="text-[#00263f] font-extrabold text-sm">{currentPage}</span> dari <span className="text-slate-800">{numPages}</span>
-          </div>
-
-          {/* Thumbnail quick jump */}
-          <div className="hidden md:flex items-center gap-1.5 max-w-xs overflow-x-auto py-1">
-            {Array.from({ length: numPages }, (_, idx) => idx + 1).map((pNum) => (
-              <button
-                key={pNum}
-                onClick={() => setCurrentPage(pNum)}
-                className={`min-w-[26px] h-6 px-1 rounded text-[11px] font-black flex items-center justify-center transition cursor-pointer ${
-                  currentPage === pNum
-                    ? 'bg-[#00263f] text-white shadow-xs'
-                    : 'bg-[#eeebe1] text-slate-700 hover:bg-slate-300'
-                }`}
-              >
-                {pNum}
-              </button>
-            ))}
           </div>
         </div>
       )}
