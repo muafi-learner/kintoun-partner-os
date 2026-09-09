@@ -5,6 +5,16 @@ import { PdfViewer } from './PdfViewer';
 import { EmptyModuleState } from './EmptyModuleState';
 import { isSubcategoryUploaded } from '../utils/uploadStatus';
 
+// Helper pembuat Title Case
+const formatTitleCase = (text: string) => {
+  if (!text) return '';
+  return text
+    .toLowerCase()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ');
+};
+
 interface LearningCardsViewProps {
   cardData: SubcategoryCard;
   onBack: () => void;
@@ -21,8 +31,6 @@ export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
   targetSlide = 1
 }) => {
   const isUploaded = isSubcategoryUploaded(cardData);
-
-  // If card has explicit uploaded slideDeck, use it
   const slideDeck = cardData.slideDeck && cardData.slideDeck.length > 0 ? cardData.slideDeck : undefined;
 
   return (
@@ -38,9 +46,9 @@ export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
             <ArrowLeft className="w-4 h-4" />
             <span>Kembali</span>
           </button>
-
+          
           <nav className="flex items-center space-x-1.5 text-xs sm:text-sm font-bold text-slate-800 ml-2">
-            <button 
+            <button
               id="breadcrumb-beranda-btn"
               onClick={onBack}
               className="hover:text-[#00263f] transition cursor-pointer"
@@ -48,16 +56,19 @@ export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
               Beranda
             </button>
             <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-            <button 
+            
+            <button
               id="breadcrumb-category-btn"
               onClick={onBack}
-              className="hover:text-[#00263f] transition capitalize cursor-pointer"
+              className="hover:text-[#00263f] transition cursor-pointer"
             >
-              {cardData.categoryId} Issue
+              {formatTitleCase(`${cardData.categoryId} Issue`)}
             </button>
             <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+            
+            {/* Format Title Case diterapkan disini */}
             <span className="text-[#00263f] font-extrabold truncate max-w-[200px] sm:max-w-none">
-              {cardData.title}
+              {formatTitleCase(cardData.title)}
             </span>
           </nav>
         </div>
@@ -87,7 +98,6 @@ export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
               id="btn-admin-upload-ppt"
               onClick={onOpenUpload}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-sm transition cursor-pointer"
-              title={isUploaded ? "Ganti file PPT/PDF untuk materi ini" : "Unggah file PPT/PDF untuk materi ini"}
             >
               <Upload className="w-3.5 h-3.5" />
               <span>{isUploaded ? 'Ganti File PPT/PDF' : 'Unggah File PDF / PPT'}</span>
@@ -96,7 +106,7 @@ export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
         </div>
       </div>
 
-      {/* Main Content: Either Empty State or Real Document Presentation */}
+      {/* Main Content Viewer */}
       <div id="ppt-viewer-wrapper" className="w-full">
         {!isUploaded ? (
           <EmptyModuleState
@@ -108,7 +118,7 @@ export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
           />
         ) : (
           <PdfViewer
-            title={`PRESENTASI PPT: ${cardData.title}`}
+            title={`PRESENTASI PPT: ${formatTitleCase(cardData.title)}`}
             subtitle={cardData.description}
             fileName={cardData.pdfFileName || `${cardData.title.replace(/\s+/g, '_')}_Presentation.pdf`}
             pdfUrl={cardData.pdfUrl}
