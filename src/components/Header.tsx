@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Bell, ShieldCheck, Upload, Menu, Eye, LogIn } from 'lucide-react';
+import { Search, Bell, ShieldCheck, Upload, Menu, Eye } from 'lucide-react';
 import { Role, UserProfile, AppNotification } from '../types';
 
 interface HeaderProps {
@@ -24,7 +24,6 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenSearch,
   onOpenNotifications,
   onOpenProfile,
-  onOpenLogin,
   onOpenUpload,
   onGoHome,
   onToggleMobileSidebar
@@ -34,9 +33,10 @@ export const Header: React.FC<HeaderProps> = ({
       id="main-app-header"
       className="sticky top-0 w-full bg-[#00263f] text-white shadow-md border-b border-[#3c586d]/40 transition-colors duration-200 z-50"
     >
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
+      {/* max-w-none agar mentok kiri kanan */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
         
-        {/* Left: Mobile Menu Toggle + Logo */}
+        {/* Left: Mobile Menu Toggle + Logo Kintoun Partner */}
         <div className="flex items-center gap-2 sm:gap-4">
           {onToggleMobileSidebar && (
             <button
@@ -56,22 +56,21 @@ export const Header: React.FC<HeaderProps> = ({
             <img
               src="/cloud-kintoun-logo.svg"
               alt="Kintoun Logo"
-              className="w-8 h-6 sm:w-12 sm:h-8.5 object-contain transition-transform duration-150 group-hover:scale-105"
+              className="w-8 h-6 sm:w-11 sm:h-8 object-contain transition-transform duration-150 group-hover:scale-105"
             />
             <div className="flex flex-col">
-              <span className="text-lg sm:text-2xl font-black tracking-wider text-white group-hover:text-[#c0c9ce] transition leading-none">
+              <span className="text-lg sm:text-xl font-black tracking-wider text-white group-hover:text-[#c0c9ce] transition leading-tight">
                 KINTOUN
               </span>
-              {/* Sub-judul disembunyikan di HP (hidden) dan muncul di layar sm ke atas */}
-              <span className="hidden sm:block text-[10px] sm:text-[11px] tracking-widest text-[#c0c9ce] font-bold uppercase mt-1">
-                Operating System & Partner
+              <span className="text-[9px] sm:text-[10px] tracking-widest text-[#c0c9ce] font-extrabold uppercase leading-none">
+                PARTNER
               </span>
             </div>
           </button>
         </div>
 
         {/* Right: Essential Tools (Search, Notif, Profile, Admin Upload) */}
-        <div className="flex items-center gap-1 sm:gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3">
           {role === 'admin' && (
             <button
               onClick={onOpenUpload}
@@ -82,7 +81,6 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* Search Button */}
           <button
             id="header-search-btn"
             onClick={onOpenSearch}
@@ -92,7 +90,6 @@ export const Header: React.FC<HeaderProps> = ({
             <Search className="w-5 h-5" />
           </button>
 
-          {/* Notification Button */}
           <button
             id="header-notif-btn"
             onClick={onOpenNotifications}
@@ -105,18 +102,6 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
-          {/* Ganti Akun Button (Hanya tampil ikonnya di HP agar ringkas, teks muncul di layar besar) */}
-          <button
-            id="header-login-btn"
-            onClick={onOpenLogin}
-            className="flex items-center gap-1 px-2 py-1.5 rounded-lg text-xs font-bold text-white/90 hover:text-white hover:bg-white/10 border border-white/20 transition cursor-pointer"
-            title="Ganti Akun"
-          >
-            <LogIn className="w-3.5 h-3.5 text-amber-300" />
-            <span className="hidden md:inline">Ganti Akun</span>
-          </button>
-
-          {/* Profile / Authority Badge */}
           <button
             id="header-profile-btn"
             onClick={onOpenProfile}
