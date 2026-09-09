@@ -67,7 +67,7 @@ export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
             <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
             
             {/* Format Title Case diterapkan disini */}
-            <span className="text-[#00263f] font-extrabold truncate max-w-[200px] sm:max-w-none">
+            <span className="text-[#00263f] font-bold truncate max-w-[200px] sm:max-w-none">
               {formatTitleCase(cardData.title)}
             </span>
           </nav>
