@@ -9,7 +9,7 @@ import {
   Store,
   ChevronRight,
   X,
-  Headphones
+  ExternalLink
 } from 'lucide-react';
 import { CategoryId } from '../types';
 
@@ -37,12 +37,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectCategory,
   onSelectHomepage,
   isMobileOpen = false,
-  onCloseMobile,
-  onOpenTicketModal
+  onCloseMobile
 }) => {
   const [isOpen, setIsOpen] = useState(true);
 
-  // Do not render the sidebar when on the homepage
   if (currentView === 'home') {
     return null;
   }
@@ -59,13 +57,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   return (
     <>
-      {/* 1. DESKTOP SIDEBAR */}
       <aside
         id="app-partner-sidebar"
         style={{ width: isOpen ? '260px' : '68px' }}
         className="hidden md:flex shrink-0 bg-white relative self-stretch min-h-full py-4 flex-col font-sans select-none transition-all duration-200 shadow-2xs z-10"
       >
-        {/* Clickable border handle (Garis interaktif) */}
         <div
           onClick={() => setIsOpen(!isOpen)}
           className="absolute top-0 right-0 bottom-0 w-3 cursor-col-resize group flex justify-end z-20"
@@ -75,7 +71,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         <div className="sticky top-4 flex flex-col h-fit pr-1">
-          {/* Navigation List */}
           <nav className="flex flex-col space-y-1 px-2">
             {navItems.map((item) => {
               const isHomepage = item.id === 'homepage';
@@ -138,54 +133,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
             })}
           </nav>
 
-          {/* Quick Support & Operational Card */}
           {isOpen && (
-            <div className="px-2 pt-3 mt-2 border-t border-[#d6cfbf]/60 space-y-2">
-              {onOpenTicketModal && (
-                <button
-                  id="sidebar-btn-ticket-support"
-                  onClick={onOpenTicketModal}
-                  className="w-full text-left p-2.5 rounded-xl bg-amber-50 hover:bg-amber-100 border border-amber-200 text-amber-900 transition flex items-center gap-2 cursor-pointer shadow-2xs group"
-                >
-                  <div className="w-7 h-7 rounded-lg bg-amber-200/80 flex items-center justify-center shrink-0 text-amber-800">
-                    <Headphones className="w-3.5 h-3.5" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <span className="text-[11px] font-extrabold block leading-tight">Butuh Bantuan Teknisi?</span>
-                    <span className="text-[9.5px] text-amber-700 font-medium">Buka Tiket Kendala Gerai</span>
-                  </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-amber-400 group-hover:text-amber-700 transition shrink-0" />
-                </button>
-              )}
-              <div className="p-2.5 rounded-xl bg-[#eeebe1]/70 border border-[#d6cfbf] text-[10px] text-slate-600 leading-relaxed">
-                <div className="flex items-center justify-between font-black text-[#00263f]">
-                  <span>Kintoun Partner OS</span>
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" title="Sistem Aktif" />
-                </div>
-                <span className="text-[#908371] font-semibold block text-[9.5px] mt-0.5">
-                  Standar SOP Operasional 2026
-                </span>
-              </div>
+            <div className="px-2 pt-3 mt-2 border-t border-[#d6cfbf]/60">
+              <a
+                href="https://helpdesk.kintouncoffee.id"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3 px-4 rounded-xl bg-[#00263f] hover:bg-[#3c586d] text-white font-black text-[11px] tracking-wider uppercase shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Hubungi Bantuan Teknisi</span>
+                <ExternalLink className="w-3.5 h-3.5 text-slate-300" />
+              </a>
             </div>
           )}
         </div>
       </aside>
 
-      {/* 2. MOBILE OFF-CANVAS DRAWER */}
       {isMobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden flex animate-in fade-in duration-150">
-          {/* Backdrop overlay */}
           <div 
             className="fixed inset-0 bg-[#00263f]/60 backdrop-blur-xs transition-opacity"
             onClick={onCloseMobile}
             aria-hidden="true"
           />
-          {/* Drawer Panel */}
           <aside 
             id="app-mobile-sidebar-drawer"
             className="relative w-72 max-w-[85vw] bg-white h-full flex flex-col shadow-2xl py-4 z-10 select-none animate-in slide-in-from-left duration-200"
           >
-            {/* Top Header with Close Button */}
             <div className="flex items-center justify-between px-4 pb-3 mb-2 border-b border-[#d6cfbf]/60">
               <span className="text-xs font-black uppercase tracking-widest text-[#00263f]">
                 MODUL GERAI KINTOUN
@@ -194,12 +168,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 id="btn-close-mobile-sidebar"
                 onClick={onCloseMobile}
                 className="p-1.5 rounded-lg text-slate-500 hover:text-[#00263f] hover:bg-[#eeebe1] transition cursor-pointer"
-                aria-label="Tutup Menu"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            {/* Navigation items for mobile */}
+            
             <nav className="flex-1 flex flex-col space-y-1.5 px-3 overflow-y-auto">
               {navItems.map((item) => {
                 const isHomepage = item.id === 'homepage';
@@ -259,12 +232,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 );
               })}
             </nav>
-            {/* Footer */}
-            <div className="mt-auto px-4 pt-3 border-t border-[#d6cfbf]/60">
-              <div className="p-3 rounded-xl bg-[#eeebe1]/70 border border-[#d6cfbf] text-xs text-slate-600 font-medium">
-                <span className="font-black text-[#00263f] block text-xs">Kintoun Partner OS</span>
-                <span className="text-[#908371] text-[11px] font-semibold">Standar SOP Operasional 2026</span>
-              </div>
+
+            <div className="mt-auto px-4 pt-3 pb-4 border-t border-[#d6cfbf]/60">
+              <a
+                href="https://helpdesk.kintouncoffee.id"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3 px-4 rounded-xl bg-[#00263f] hover:bg-[#3c586d] text-white font-black text-xs tracking-wider uppercase shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
+              >
+                <span>Hubungi Bantuan Teknisi</span>
+                <ExternalLink className="w-4 h-4 text-slate-300" />
+              </a>
             </div>
           </aside>
         </div>
