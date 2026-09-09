@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo } from 'react';
 import { 
-  Upload, FileText, Search, X, Users, Coffee, Wrench, 
+  Upload, FileText, Users, Coffee, Wrench, 
   UserCheck, PackageCheck, Store, Layers, BookOpen, 
   MessageSquareWarning, HeartHandshake, Smile, PhoneCall, ClipboardEdit, 
   AlertOctagon, Utensils, Hammer, Settings, Droplets, Cpu, Clock, 
@@ -47,29 +47,23 @@ interface CategoryViewProps {
 }
 
 export const CategoryView: React.FC<CategoryViewProps> = ({
-  categoryId, subcategories, onSelectSubcategory, onOpenUpload, onBackToHome, isAdmin, onOpenMobileSidebar
+  categoryId, subcategories, onSelectSubcategory, onOpenUpload, onBackToHome, isAdmin
 }) => {
-  const [searchQuery, setSearchQuery] = useState('');
-  
   const currentCategory = useMemo(() => CATEGORIES.find((c) => c.id === categoryId) || CATEGORIES[0], [categoryId]);
   
   const visibleSubcategories = useMemo(() => {
-    const filtered = subcategories.filter((s) => s.categoryId === categoryId);
-    if (!searchQuery.trim()) return filtered;
-    const q = searchQuery.toLowerCase();
-    return filtered.filter((s) => s.title.toLowerCase().includes(q) || s.description.toLowerCase().includes(q));
-  }, [subcategories, categoryId, searchQuery]);
+    return subcategories.filter((s) => s.categoryId === categoryId);
+  }, [subcategories, categoryId]);
 
   const CategoryIcon = getIconComponent(currentCategory.iconName);
 
   return (
     <div className="relative flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-6xl mx-auto w-full font-sans flex flex-col justify-between min-h-full pb-20">
       <div>
-        {/* TOP BAR: MOBILE (TOMBOL KEMBALI & ADMIN UPLOAD) */}
+        {/* MOBILE: Tombol Kembali */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2">
             <button
-              id="btn-back-to-home"
               onClick={onBackToHome}
               className="md:hidden inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-[#d6cfbf] hover:bg-[#eeebe1] hover:text-[#00263f] transition shadow-xs cursor-pointer"
             >
@@ -85,7 +79,7 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
           )}
         </div>
 
-        <div className="bg-white rounded-2xl border border-[#d6cfbf] p-4 sm:p-5 mb-6 shadow-xs flex items-center justify-between gap-4">
+        <div className="bg-white rounded-2xl border border-[#d6cfbf] p-4 sm:p-5 mb-8 shadow-xs flex items-center justify-between gap-4">
           <div className="flex items-center gap-3.5 min-w-0">
             <div className={`p-3 rounded-xl border ${currentCategory.accentLight} shadow-2xs shrink-0`}>
               <CategoryIcon className="w-6 h-6 sm:w-7 sm:h-7" />
@@ -94,28 +88,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
               <h1 className="text-base sm:text-xl font-black text-slate-900 uppercase tracking-tight truncate">{currentCategory.name}</h1>
               <p className="text-[11px] sm:text-xs text-slate-500 font-medium truncate mt-0.5">{currentCategory.tagline} — Standarisasi & modul pelatihan operasional</p>
             </div>
-          </div>
-        </div>
-
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-5">
-          {/* Teks panduan disembunyikan di layar HP (hidden md:block) */}
-          <p className="hidden md:block text-sm text-slate-600 font-semibold">
-            Pilih modul masalah spesifik untuk membuka slide presentasi solusi & standar penanganan
-          </p>
-          <div className="relative w-full md:w-72 shrink-0">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={`Cari dalam ${currentCategory.name}...`}
-              className="w-full pl-9 pr-8 py-2 rounded-xl border border-[#d6cfbf] bg-white text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00263f] transition shadow-2xs"
-            />
-            {searchQuery && (
-              <button onClick={() => setSearchQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
-                <X className="w-3.5 h-3.5" />
-              </button>
-            )}
           </div>
         </div>
 
