@@ -462,28 +462,14 @@ export default function App() {
                 <div className="relative flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-6xl mx-auto w-full font-sans pb-20">
                   <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
                     <div className="flex items-center gap-2">
+                      {/* TAMPILAN MOBILE: Tombol Kembali (Disembunyikan di Desktop) */}
                       <button
                         onClick={() => setCurrentView('home')}
-                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-[#d6cfbf] hover:bg-[#eeebe1] hover:text-[#00263f] transition shadow-xs cursor-pointer"
+                        className="md:hidden inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-[#d6cfbf] hover:bg-[#eeebe1] hover:text-[#00263f] transition shadow-xs cursor-pointer"
                       >
                         <ArrowLeft className="w-4 h-4" />
                         <span>Kembali</span>
                       </button>
-                      
-                      {/* HANYA MUNCUL DI DESKTOP: Breadcrumb lengkap */}
-                      <nav className="hidden sm:flex items-center space-x-1.5 text-xs sm:text-sm font-bold text-slate-800 ml-2">
-                        <button
-                          onClick={() => setCurrentView('home')}
-                          className="hover:text-[#00263f] transition cursor-pointer"
-                        >
-                          Homepage
-                        </button>
-                        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-                        
-                        <span className="text-[#00263f] font-bold truncate max-w-[200px] sm:max-w-none">
-                          {mainNews.title || 'Panduan Utama 2026'}
-                        </span>
-                      </nav>
                     </div>
 
                     <div className="flex items-center gap-2">
