@@ -5,7 +5,7 @@ import {
   MessageSquareWarning, HeartHandshake, Smile, PhoneCall, ClipboardEdit, 
   AlertOctagon, Utensils, Hammer, Settings, Droplets, Cpu, Clock, 
   Calendar, TrendingUp, AlertCircle, ShoppingCart, Truck, Trash2, 
-  CheckSquare, DoorOpen, CreditCard, ShieldCheck, CheckCircle2, PlusCircle, ExternalLink, Boxes, Sparkles 
+  CheckSquare, DoorOpen, CreditCard, ShieldCheck, CheckCircle2, PlusCircle, ExternalLink, Boxes, Sparkles, ArrowLeft 
 } from 'lucide-react';
 import { CategoryId, SubcategoryCard, NewsArticle } from '../types';
 import { CATEGORIES } from '../data/initialData';
@@ -65,27 +65,18 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
   return (
     <div className="relative flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-6xl mx-auto w-full font-sans flex flex-col justify-between min-h-full pb-20">
       <div>
-        {/* TOP BAR: MOBILE MEMUAT TOMBOL HOMEPAGE & GANTI (PERSIS SEPERTI GAMBAR) */}
+        {/* TOP BAR: MOBILE MEMUAT TOMBOL KEMBALI */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
           <div className="flex items-center gap-2">
-            {/* TAMPILAN MOBILE: Tombol Homepage & Ganti berdampingan */}
-            <div className="md:hidden inline-flex items-center bg-white rounded-xl border border-[#d6cfbf] p-1 shadow-2xs gap-1">
-              <button 
-                onClick={onBackToHome} 
-                className="px-3 py-1.5 rounded-lg text-xs font-bold text-slate-800 hover:bg-[#eeebe1] transition cursor-pointer"
-              >
-                Homepage
-              </button>
-              {onOpenMobileSidebar && (
-                <button 
-                  onClick={onOpenMobileSidebar} 
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-[#eeebe1]/80 hover:bg-[#eeebe1] text-[#00263f] transition cursor-pointer"
-                >
-                  <Layers className="w-3.5 h-3.5 text-[#3c586d]" />
-                  <span>Ganti</span>
-                </button>
-              )}
-            </div>
+            {/* TAMPILAN MOBILE: Tombol Kembali. Disembunyikan di Desktop (md:hidden) */}
+            <button
+              id="btn-back-to-home"
+              onClick={onBackToHome}
+              className="md:hidden inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-[#d6cfbf] hover:bg-[#eeebe1] hover:text-[#00263f] transition shadow-xs cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Kembali</span>
+            </button>
           </div>
 
           {isAdmin && (
