@@ -8,8 +8,7 @@ import {
   PackageCheck,
   Store,
   ChevronRight,
-  X,
-  ExternalLink
+  X
 } from 'lucide-react';
 import { CategoryId } from '../types';
 
@@ -132,20 +131,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               );
             })}
           </nav>
-
-          {isOpen && (
-            <div className="px-2 pt-3 mt-2 border-t border-[#d6cfbf]/60">
-              <a
-                href="https://helpdesk.kintouncoffee.id"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full py-3 px-4 rounded-xl bg-[#00263f] hover:bg-[#3c586d] text-white font-black text-[11px] tracking-wider uppercase shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>Hubungi Bantuan Teknisi</span>
-                <ExternalLink className="w-3.5 h-3.5 text-slate-300" />
-              </a>
-            </div>
-          )}
         </div>
       </aside>
 
@@ -232,18 +217,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 );
               })}
             </nav>
-
-            <div className="mt-auto px-4 pt-3 pb-4 border-t border-[#d6cfbf]/60">
-              <a
-                href="https://helpdesk.kintouncoffee.id"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full py-3 px-4 rounded-xl bg-[#00263f] hover:bg-[#3c586d] text-white font-black text-xs tracking-wider uppercase shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <span>Hubungi Bantuan Teknisi</span>
-                <ExternalLink className="w-4 h-4 text-slate-300" />
-              </a>
-            </div>
           </aside>
         </div>
       )}
