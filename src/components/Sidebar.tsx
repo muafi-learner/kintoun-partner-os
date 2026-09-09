@@ -45,7 +45,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }
 
   const navItems: NavItem[] = [
-    { id: 'homepage', label: 'BERANDA GERAI', shortLabel: 'Beranda', colorHex: '#00263f', icon: Home },
+    { id: 'homepage', label: 'HOMEPAGE', shortLabel: 'Homepage', colorHex: '#00263f', icon: Home },
     { id: 'customer', label: 'CUSTOMER ISSUE', shortLabel: 'Customer', colorHex: '#059669', icon: Users },
     { id: 'product', label: 'PRODUCT ISSUE', shortLabel: 'Product', colorHex: '#d97706', icon: Coffee },
     { id: 'equipment', label: 'EQUIPMENT ISSUE', shortLabel: 'Equipment', colorHex: '#2563eb', icon: Wrench },
@@ -147,7 +147,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           >
             <div className="flex items-center justify-between px-4 pb-3 mb-2 border-b border-[#d6cfbf]/60">
               <span className="text-xs font-black uppercase tracking-widest text-[#00263f]">
-                MODUL GERAI KINTOUN
+                KINTOUN PARTNER
               </span>
               <button
                 id="btn-close-mobile-sidebar"
