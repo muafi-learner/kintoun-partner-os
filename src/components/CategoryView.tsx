@@ -5,7 +5,7 @@ import {
   MessageSquareWarning, HeartHandshake, Smile, PhoneCall, ClipboardEdit, 
   AlertOctagon, Utensils, Hammer, Settings, Droplets, Cpu, Clock, 
   Calendar, TrendingUp, AlertCircle, ShoppingCart, Truck, Trash2, 
-  CheckSquare, DoorOpen, CreditCard, ShieldCheck, CheckCircle2, PlusCircle, ExternalLink 
+  CheckSquare, DoorOpen, CreditCard, ShieldCheck, CheckCircle2, PlusCircle, ExternalLink, Boxes, Sparkles 
 } from 'lucide-react';
 import { CategoryId, SubcategoryCard, NewsArticle } from '../types';
 import { CATEGORIES } from '../data/initialData';
@@ -65,7 +65,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
   return (
     <div className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-6xl mx-auto w-full font-sans flex flex-col justify-between min-h-full">
       <div>
-        {/* TOP BREADCRUMB & ADMIN UPLOAD BUTTON */}
         <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
           <div className="flex items-center gap-2">
             <nav className="flex items-center space-x-2 text-xs sm:text-sm font-bold text-slate-600">
@@ -86,7 +85,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
           )}
         </div>
 
-        {/* COMPACT HORIZONTAL CATEGORY BANNER (Sesuai Coretan Gambar) */}
         <div className="bg-white rounded-2xl border border-[#d6cfbf] p-4 sm:p-5 mb-6 shadow-xs flex items-center justify-between gap-4">
           <div className="flex items-center gap-3.5 min-w-0">
             <div className={`p-3 rounded-xl border ${currentCategory.accentLight} shadow-2xs shrink-0`}>
@@ -99,7 +97,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
           </div>
         </div>
 
-        {/* SEARCH & SECTION TITLE */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-5">
           <p className="text-xs text-slate-500 font-medium">
             Pilih modul masalah spesifik untuk membuka slide presentasi solusi & standar penanganan gerai
@@ -121,7 +118,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
           </div>
         </div>
 
-        {/* CARDS GRID */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
           {visibleSubcategories.map((subcat) => {
             const uploaded = isSubcategoryUploaded(subcat);
@@ -173,7 +169,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
         </div>
       </div>
 
-      {/* TOMBOL HUBUNGI BANTUAN TEKNISI DI POJOK KANAN BAWAH */}
       <div className="flex justify-end pt-8 pb-4">
         <a
           href="https://helpdesk.kintouncoffee.id"
