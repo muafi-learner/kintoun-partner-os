@@ -49,11 +49,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
   }, [searchQuery]);
 
   return (
-    <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 font-sans min-h-full flex flex-col justify-between">
+    <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-47 sm:py-51 font-sans min-h-full flex flex-col justify-between">
       <div>
         {/* HERO SECTION - Teks "Welcome to KINTOUN Partner!" */}
-        <section className="mb-10 sm:mb-14 px-2 max-w-3xl">
-          <h1 className="text-4xl sm:text-6xl lg:text-7xl text-[#00263f] leading-[1.1] mb-6">
+        <section className="mb-41 sm:mb-45 px-2 max-w-3xl">
+          <h1 className="font-poppins text-4xl sm:text-6xl lg:text-7xl text-[#00263f] leading-[1.1] mb-6">
             <span className="font-medium">Welcome to</span><br />
             <span className="font-black tracking-tight uppercase">KINTOUN</span> <span className="font-medium">Partner!</span>
           </h1>
@@ -82,23 +82,16 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 {mainNews.title}
               </h2>
               <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed line-clamp-2">
-                {mainNews.subtitle} • {mainNews.summary}
+                {mainNews.subtitle}
               </p>
             </div>
             
             {/* Action Bar (Bawah) */}
             <div className="flex flex-wrap items-center justify-between pt-4 mt-4 border-t border-slate-100 text-xs gap-3">
               <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-md text-slate-700 font-mono text-[10px] font-semibold border border-slate-200">
-                  <FileText className="w-3.5 h-3.5 text-slate-500" />
-                  {mainNews.pdfFileName} ({mainNews.pdfFileSize || '2.4 MB'})
-                </span>
-                <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
-                  Klik untuk menampilkan slide materi langsung
-                </span>
               </div>
               <span className="inline-flex items-center gap-1.5 text-[#00263f] font-bold text-xs group-hover:translate-x-1 transition">
-                Buka Materi Slide Presentasi <ArrowRight className="w-3.5 h-3.5" />
+                Buka Materi <ArrowRight className="w-3.5 h-3.5" />
               </span>
             </div>
           </div>
@@ -149,9 +142,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 </div>
                 <div className="h-px bg-slate-100 my-3"></div>
                 <div className="mb-4">
-                  <p className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2">
-                    Daftar Panduan & Prosedur:
-                  </p>
                   <ul className="space-y-2">
                     {cat.items.map((item, idx) => {
                       const isMatched = searchQuery && item.toLowerCase().includes(searchQuery.toLowerCase());
@@ -204,7 +194,34 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </section>
       </div>
 
-      {/* Bantuan Teknisi Menyusul (Seperti di catatan Anda) */}
+      {/* SECTION BANTUAN TEKNISI STATIS DI TENGAH BAWAH */}
+      <div className="snap-start snap-always shrink-0 pt-[160px] pb-[20px]">
+        <section className="mt-8 mb-12 w-full max-w-2xl mx-auto text-center bg-white rounded-3xl border border-[#d6cfbf] p-6 sm:p-10 shadow-sm">
+          <div className="flex justify-center mb-4">
+            <div className="w-10 h-10 rounded-full bg-[#eeebe1] flex items-center justify-center">
+              <LifeBuoy className="w-5 h-5 text-[#00263f]" />
+            </div>
+          </div>
+          <h3 className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 sm:mb-3">
+            Eskalasi & Bantuan Cepat
+          </h3>
+          <h4 className="text-base sm:text-lg font-black text-[#00263f] mb-3">
+            Kendala Tidak Ditemukan di Panduan Gerai?
+          </h4>
+          <p className="text-xs sm:text-sm text-slate-500 mb-6 sm:mb-8 px-2 leading-relaxed">
+            Jika terjadi kerusakan darurat pada mesin, atau kondisi operasional yang membutuhkan penanganan langsung dari teknisi Kintoun, gunakan portal khusus eskalasi ini.
+          </p>
+          <a
+            href="https://helpdesk.kintouncoffee.id"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-6 py-3 sm:py-3.5 rounded-xl bg-[#00263f] hover:bg-[#3c586d] text-white font-black text-xs tracking-wider uppercase transition shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
+          >
+            <span>Hubungi Bantuan Teknisi</span>
+            <ExternalLink className="w-4 h-4" />
+          </a>
+        </section>
+      </div>
     </div>
   );
 };
