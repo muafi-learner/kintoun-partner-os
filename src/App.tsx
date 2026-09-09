@@ -162,17 +162,23 @@ export default function App() {
     localStorage.setItem(STORAGE_KEYS.CURRENT_ROLE, newProfile.role);
   };
 
+  // LOGIC LOGOUT DIPERBARUI DI SINI
   const handleLogout = () => {
     const defaultKru: UserProfile = {
       id: `usr_${Date.now()}`,
-      name: 'Kru Tamu Gerai',
+      name: 'Kru Tamu',
       role: 'user',
-      storeName: 'Gerai Kintoun Merdeka - Bandung',
-      email: 'kru@partner.kintoun.id'
+      storeName: 'Silakan Login',
+      email: ''
     };
     setUser(defaultKru);
     setRole('user');
     localStorage.setItem(STORAGE_KEYS.CURRENT_ROLE, 'user');
+    
+    // Trik UX: Tendang ke halaman awal & langsung buka pop-up Login
+    setCurrentView('home');
+    setActiveDashboard(null);
+    setIsLoginOpen(true);
   };
 
   const handleSwitchRole = (newRole: Role) => {
