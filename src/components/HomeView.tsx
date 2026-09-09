@@ -90,30 +90,28 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
         </section>
 
-        {/* SEARCH BAR DISEJAJARKAN DI SEBELAH KANAN SEPERTI DI GAMBAR */}
-        <section className="mb-6">
-          <div className="bg-white rounded-2xl border border-[#d6cfbf] px-5 py-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-            <p className="text-xs sm:text-sm text-slate-500 font-medium">
-              Pilih topik di bawah atau ketik kata kunci kendala untuk menemukan solusi
-            </p>
-            <div className="relative w-full md:w-80 shrink-0">
-              <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Cari kendala (cth: mesin, resep, komplain)..."
-                className="w-full pl-9.5 pr-8 py-2 rounded-xl border border-[#d6cfbf] bg-[#eeebe1]/30 focus:bg-white text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00263f] transition"
-              />
-              {searchQuery && (
-                <button 
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
+        {/* KOTAK PUTIH DIBUANG TOTAL, TINGGAL TEKS INFORMASI & SEARCH BAR BERJEJER */}
+        <section className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 px-1">
+          <p className="text-xs sm:text-sm text-slate-600 font-semibold">
+            Pilih topik di bawah atau ketik kata kunci kendala untuk menemukan solusi
+          </p>
+          <div className="relative w-full md:w-80 shrink-0">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari kendala (cth: mesin, resep, komplain)..."
+              className="w-full pl-9.5 pr-8 py-2 rounded-xl border border-[#d6cfbf] bg-white text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00263f] transition shadow-2xs"
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
           </div>
         </section>
 
