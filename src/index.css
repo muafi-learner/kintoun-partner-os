@@ -1,11 +1,15 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,400;1,500;1,600;1,700&display=swap');
 @import "tailwindcss";
 
 @theme {
+  /* Inter tetap jadi font utama (default font-sans) untuk seluruh aplikasi */
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  
+  /* Membuat class Tailwind baru: font-poppins */
+  --font-poppins: "Poppins", ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Memastikan seluruh teks aplikasi terkunci ke Inter */
 body {
   font-family: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
