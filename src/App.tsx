@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
+  ArrowLeft, ChevronRight, Upload, ExternalLink 
+} from 'lucide-react';
+import { 
   CategoryId, 
   Role, 
   UserProfile, 
@@ -30,6 +33,8 @@ import { SearchModal } from './components/SearchModal';
 import { TicketModal } from './components/TicketModal';
 import { HostingerGuideModal } from './components/HostingerGuideModal';
 import { LoginModal } from './components/LoginModal';
+import { PdfViewer } from './components/PdfViewer';
+import { EmptyModuleState } from './components/EmptyModuleState';
 import { STORAGE_KEYS } from './services/storage';
 
 export default function App() {
@@ -85,7 +90,6 @@ export default function App() {
     if (!saved) return INITIAL_SUBCATEGORIES;
     try {
       const parsed: SubcategoryCard[] = JSON.parse(saved);
-      // Merge: apply latest color and default data from INITIAL_SUBCATEGORIES while preserving user custom cards
       const updated = INITIAL_SUBCATEGORIES.map((initSub) => {
         const found = parsed.find((p) => p.id === initSub.id);
         if (found) {
@@ -343,7 +347,6 @@ export default function App() {
       setCurrentView('subcategory');
     }
 
-    // Generate broadcast notification if requested
     if (payload.notifyUsers) {
       const newNotif: AppNotification = {
         id: `notif_${Date.now()}`,
@@ -363,7 +366,6 @@ export default function App() {
   };
 
   const handleSelectNotification = (notif: AppNotification) => {
-    // Mark as read
     setNotifications(prev => prev.map(n => n.id === notif.id ? { ...n, read: true } : n));
     setIsNotifOpen(false);
 
@@ -389,7 +391,6 @@ export default function App() {
     setTickets(prev => [newTicket, ...prev]);
   };
 
-  // Find active subcategory data
   const currentSubcategory = subcategories.find(s => s.id === selectedSubcategoryId) || subcategories[0];
   const currentSpecificNews = specificNews[selectedCategory] || specificNews['customer'];
 
@@ -436,7 +437,6 @@ export default function App() {
             isAdmin={role === 'admin'}
           />
         ) : (
-          /* Subpage Layout: Responsive Desktop Sidebar + Full-width Content Router */
           <div className="flex-1 flex flex-row w-full min-h-0 relative items-stretch">
             <Sidebar
               currentView={currentView}
@@ -455,16 +455,91 @@ export default function App() {
               onOpenTicketModal={() => setIsTicketOpen(true)}
             />
 
-            {/* Subpage Content Router: Full width on mobile and flex-1 on desktop */}
             <div className="flex-1 w-full min-w-0 flex flex-col overflow-y-auto">
+              
+              {/* === MAIN NEWS VIEW (Disesuaikan agar seragam dengan Category) === */}
               {currentView === 'main-news' && (
-                <NewsDetailView
-                  article={mainNews}
-                  targetSlide={targetPdfSlide}
-                  onBack={() => setCurrentView('home')}
-                  onOpenUpload={() => setIsUploadOpen(true)}
-                  isAdmin={role === 'admin'}
-                />
+                <div className="relative flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-6xl mx-auto w-full font-sans pb-20">
+                  <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setCurrentView('home')}
+                        className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-[#d6cfbf] hover:bg-[#eeebe1] hover:text-[#00263f] transition shadow-xs cursor-pointer"
+                      >
+                        <ArrowLeft className="w-4 h-4" />
+                        <span>Kembali</span>
+                      </button>
+                      
+                      {/* HANYA MUNCUL DI DESKTOP: Breadcrumb lengkap */}
+                      <nav className="hidden sm:flex items-center space-x-1.5 text-xs sm:text-sm font-bold text-slate-800 ml-2">
+                        <button
+                          onClick={() => setCurrentView('home')}
+                          className="hover:text-[#00263f] transition cursor-pointer"
+                        >
+                          Homepage
+                        </button>
+                        <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
+                        
+                        <span className="text-[#00263f] font-bold truncate max-w-[200px] sm:max-w-none">
+                          {mainNews.title || 'Panduan Utama 2026'}
+                        </span>
+                      </nav>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {role === 'admin' && (
+                        <button
+                          onClick={() => setIsUploadOpen(true)}
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-sm transition cursor-pointer"
+                        >
+                          <Upload className="w-3.5 h-3.5" />
+                          <span>Ganti File PPT/PDF</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  <div id="main-news-viewer-wrapper" className="w-full">
+                    {!mainNews.pdfUrl && !mainNews.pdfDataUrl && !mainNews.pdfData && !mainNews.rawFile && !mainNews.fileId ? (
+                      <EmptyModuleState
+                        title={mainNews.title}
+                        categoryName="PANDUAN UTAMA"
+                        isAdmin={role === 'admin'}
+                        onUpload={() => setIsUploadOpen(true)}
+                        onBack={() => setCurrentView('home')}
+                      />
+                    ) : (
+                      <PdfViewer
+                        title={`PRESENTASI PPT: ${mainNews.title}`}
+                        subtitle={mainNews.summary}
+                        fileName={mainNews.pdfFileName || 'Panduan_Utama_2026.pdf'}
+                        pdfUrl={mainNews.pdfUrl}
+                        pdfDataUrl={mainNews.pdfDataUrl}
+                        rawFile={mainNews.rawFile}
+                        pdfData={mainNews.pdfData}
+                        fileId={mainNews.fileId}
+                        fileSize={mainNews.pdfFileSize}
+                        isAdmin={role === 'admin'}
+                        initialPage={targetPdfSlide}
+                        onReplacePdf={() => setIsUploadOpen(true)}
+                        onBack={() => setCurrentView('home')}
+                      />
+                    )}
+                  </div>
+
+                  {/* TOMBOL BANTUAN TEKNISI FLOATING OVERLAPPING DI POJOK KANAN BAWAH */}
+                  <div className="fixed bottom-6 right-6 z-40">
+                    <a
+                      href="https://helpdesk.kintouncoffee.id"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4.5 py-2.5 rounded-xl bg-[#00263f] hover:bg-[#3c586d] text-white font-black text-xs tracking-wider uppercase shadow-xl hover:shadow-2xl transition transform hover:scale-105 flex items-center gap-2 cursor-pointer border border-white/10"
+                    >
+                      <span>Bantuan Teknisi</span>
+                      <ExternalLink className="w-4 h-4 text-slate-300" />
+                    </a>
+                  </div>
+                </div>
               )}
 
               {currentView === 'category' && (
