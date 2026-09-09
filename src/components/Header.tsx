@@ -1,32 +1,37 @@
 import React from 'react';
-import { Search, Bell, ShieldCheck, Upload, Menu, Eye } from 'lucide-react';
-import { Role, UserProfile, AppNotification } from '../types';
+import { Search, Bell, Upload, Menu, Building, Store as StoreIcon, LogOut } from 'lucide-react';
+import { Role, UserProfile, AppNotification, CategoryId } from '../types';
+import { CATEGORIES } from '../data/initialData';
 
 interface HeaderProps {
-  variant: 'home' | 'subpage';
+  currentView: string;
   role: Role;
   user: UserProfile;
   notifications: AppNotification[];
   unreadCount: number;
+  selectedCategory?: CategoryId;
+  onSelectCategory: (categoryId: CategoryId) => void;
   onOpenSearch: () => void;
   onOpenNotifications: () => void;
-  onOpenProfile: () => void;
-  onOpenLogin: () => void;
   onOpenUpload: () => void;
   onGoHome: () => void;
-  onOpenHostingerGuide?: () => void;
   onToggleMobileSidebar?: () => void;
+  onLogout: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
+  currentView,
   role,
+  user,
   unreadCount,
+  selectedCategory,
+  onSelectCategory,
   onOpenSearch,
   onOpenNotifications,
-  onOpenProfile,
   onOpenUpload,
   onGoHome,
-  onToggleMobileSidebar
+  onToggleMobileSidebar,
+  onLogout
 }) => {
   return (
     <header
@@ -36,7 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="w-full px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
         
         {/* KIRI: Logo Kintoun Mepet Kiri */}
-        <div className="flex items-center gap-2 sm:gap-4">
+        <div className="flex items-center shrink-0">
           <button
             id="header-subpage-logo-btn"
             onClick={onGoHome}
@@ -58,8 +63,28 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
 
-        {/* KANAN: Tools, Profile, & Hamburger Menu (Pojok Kanan Atas) */}
-        <div className="flex items-center gap-1.5 sm:gap-3">
+        {/* TENGAH: Navigasi Kategori (Hanya Desktop) */}
+        <nav className="hidden lg:flex items-center gap-1 xl:gap-2 mx-4 overflow-x-auto no-scrollbar">
+          {CATEGORIES.map((cat) => {
+            const isActive = currentView !== 'home' && currentView !== 'main-news' && currentView !== 'dashboard' && selectedCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => onSelectCategory(cat.id)}
+                className={`whitespace-nowrap px-3 py-2 rounded-lg text-[10px] xl:text-xs font-bold transition-all cursor-pointer ${
+                  isActive 
+                    ? 'bg-white/15 text-white shadow-xs' 
+                    : 'text-[#c0c9ce] hover:text-white hover:bg-white/10'
+                }`}
+              >
+                {cat.name}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* KANAN: Tools, Profile, & Hamburger Menu */}
+        <div className="flex items-center gap-1.5 sm:gap-3 shrink-0">
           {role === 'admin' && (
             <button
               onClick={onOpenUpload}
@@ -89,25 +114,33 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
-          <button
-            onClick={onOpenProfile}
-            className="hidden sm:flex p-1 rounded-xl hover:bg-white/10 text-white transition cursor-pointer items-center justify-center focus:outline-none"
-            title="Profil & Tingkat Otoritas"
-          >
-            <div className={`w-7 h-7 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-bold text-xs shadow-xs ${
-              role === 'admin' 
-                ? 'bg-amber-400 text-slate-950 ring-2 ring-amber-300/90' 
-                : 'bg-sky-600 text-white border border-sky-400/50'
-            }`}>
-              {role === 'admin' ? <ShieldCheck className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+          {/* Indikator Profil Store/HQ & Logout (Hanya Desktop) */}
+          <div className="hidden lg:flex items-center gap-3 pl-3 ml-1 border-l border-white/20">
+            <div className="flex items-center gap-2.5 text-white">
+              <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center shrink-0">
+                {role === 'admin' ? <Building className="w-4 h-4 text-amber-400" /> : <StoreIcon className="w-4 h-4 text-sky-400" />}
+              </div>
+              <div className="flex flex-col text-left max-w-[120px] xl:max-w-[150px]">
+                <span className="text-[10px] font-black uppercase tracking-widest truncate">
+                  {role === 'admin' ? 'HQ ADMIN' : (user?.storeName || 'STORE')}
+                </span>
+                <span className="text-[9px] text-slate-300 truncate">{user?.name}</span>
+              </div>
             </div>
-          </button>
+            <button 
+              onClick={onLogout} 
+              className="p-2 text-rose-400 hover:text-rose-300 hover:bg-rose-400/10 rounded-lg transition cursor-pointer" 
+              title="Log Out"
+            >
+              <LogOut className="w-4 h-4" />
+            </button>
+          </div>
 
-          {/* Icon Hamburger di pojok paling kanan untuk Mobile & Desktop */}
+          {/* Icon Hamburger di pojok paling kanan (Hanya Mobile / Tablet) */}
           {onToggleMobileSidebar && (
             <button
               onClick={onToggleMobileSidebar}
-              className="p-2 ml-1 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition cursor-pointer"
+              className="lg:hidden p-2 ml-1 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition cursor-pointer"
               aria-label="Buka Menu Navigasi"
             >
               <Menu className="w-6 h-6 sm:w-7 sm:h-7" />
