@@ -141,18 +141,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </aside>
       )}
 
-      {/* DRAWER SIDEBAR (Berlaku global) */}
+      {/* DRAWER SIDEBAR MOBILE (MUNCUL DARI KANAN) */}
       {isMobileOpen && (
-        <div className="fixed inset-0 z-[100] flex animate-in fade-in duration-150">
+        <div className="fixed inset-0 z-[100] flex justify-end animate-in fade-in duration-150">
           <div 
             className="fixed inset-0 bg-[#00263f]/60 backdrop-blur-xs transition-opacity"
             onClick={onCloseMobile}
             aria-hidden="true"
           />
           <aside 
-            className="relative w-72 max-w-[85vw] bg-white h-full flex flex-col shadow-2xl py-2 z-10 select-none animate-in slide-in-from-left duration-200"
+            className="relative w-72 max-w-[85vw] bg-white h-full flex flex-col shadow-2xl py-2 z-10 select-none animate-in slide-in-from-right duration-200"
           >
-            {/* Header Drawer dengan Ikon Store / Office */}
             <div className="flex items-center justify-between px-4 pb-4 mb-2 border-b border-[#d6cfbf]/60 pt-2">
               <div className="flex items-center gap-2.5 text-[#00263f]">
                 <div className="w-8 h-8 rounded-lg bg-[#eeebe1] flex items-center justify-center shrink-0">
@@ -170,7 +169,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </button>
             </div>
             
-            {/* List Menu */}
             <nav className="flex-1 overflow-y-auto flex flex-col space-y-1.5 px-3">
               {navItems.map((item) => {
                 const isHomepage = item.id === 'homepage';
