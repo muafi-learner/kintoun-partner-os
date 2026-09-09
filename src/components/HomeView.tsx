@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { 
   ArrowRight, ChevronRight, FileText, ExternalLink, 
-  Users, Coffee, Wrench, UserCheck, PackageCheck, Store, Layers 
+  Search, Users, Coffee, Wrench, UserCheck, PackageCheck, Store, 
+  X, Layers, LifeBuoy
 } from 'lucide-react';
 import { CategoryId, NewsArticle } from '../types';
 import { CATEGORIES } from '../data/initialData';
@@ -21,6 +22,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onSelectCategory,
   isAdmin
 }) => {
+  const [searchQuery, setSearchQuery] = useState('');
+
   const renderCategoryIcon = (iconName: string) => {
     const iconClass = "w-6 h-6 shrink-0";
     switch (iconName) {
@@ -34,8 +37,19 @@ export const HomeView: React.FC<HomeViewProps> = ({
     }
   };
 
+  const filteredCategories = useMemo(() => {
+    if (!searchQuery.trim()) return CATEGORIES;
+    const q = searchQuery.toLowerCase();
+    return CATEGORIES.filter((cat) => {
+      const matchName = cat.name.toLowerCase().includes(q);
+      const matchTagline = cat.tagline?.toLowerCase().includes(q);
+      const matchItems = cat.items.some((item) => item.toLowerCase().includes(q));
+      return matchName || matchTagline || matchItems;
+    });
+  }, [searchQuery]);
+
   return (
-    <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 font-sans min-h-full pb-20">
+    <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 font-sans min-h-full flex flex-col justify-between">
       <div>
         <section className="mb-6 sm:mb-8">
           <div
@@ -76,8 +90,32 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
         </section>
 
+        <section className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 px-1">
+          <p className="hidden md:block text-sm text-slate-600 font-semibold">
+            Pilih topik di bawah atau ketik kata kunci kendala untuk menemukan solusi
+          </p>
+          <div className="relative w-full md:w-80 shrink-0">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Cari kendala (cth: mesin, resep, komplain)..."
+              className="w-full pl-9.5 pr-8 py-2 rounded-xl border border-[#d6cfbf] bg-white text-xs font-semibold text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00263f] transition shadow-2xs"
+            />
+            {searchQuery && (
+              <button 
+                onClick={() => setSearchQuery('')}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1 cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        </section>
+
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 mb-10">
-          {CATEGORIES.map((cat) => (
+          {filteredCategories.map((cat) => (
             <div
               key={cat.id}
               onClick={() => onSelectCategory(cat.id)}
@@ -100,21 +138,28 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     Daftar Panduan & Prosedur:
                   </p>
                   <ul className="space-y-2">
-                    {cat.items.map((item, idx) => (
-                      <li 
-                        key={idx}
-                        className="text-xs font-semibold flex items-center justify-between p-1.5 rounded-lg transition text-slate-700 group-hover:text-slate-900 group-hover:bg-slate-100/70"
-                      >
-                        <div className="flex items-center gap-2 truncate">
-                          <span 
-                            className="w-1.5 h-1.5 rounded-full shrink-0" 
-                            style={{ backgroundColor: cat.colorHex }}
-                          />
-                          <span className="truncate">{item}</span>
-                        </div>
-                        <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-500 shrink-0" />
-                      </li>
-                    ))}
+                    {cat.items.map((item, idx) => {
+                      const isMatched = searchQuery && item.toLowerCase().includes(searchQuery.toLowerCase());
+                      return (
+                        <li 
+                          key={idx}
+                          className={`text-xs font-semibold flex items-center justify-between p-1.5 rounded-lg transition ${
+                            isMatched 
+                              ? 'bg-amber-100 text-amber-900 font-bold' 
+                              : 'text-slate-700 group-hover:text-slate-900 group-hover:bg-slate-100/70'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 truncate">
+                            <span 
+                              className="w-1.5 h-1.5 rounded-full shrink-0" 
+                              style={{ backgroundColor: cat.colorHex }}
+                            />
+                            <span className="truncate">{item}</span>
+                          </div>
+                          <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-500 shrink-0" />
+                        </li>
+                      );
+                    })}
                   </ul>
                 </div>
               </div>
@@ -128,20 +173,48 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </button>
             </div>
           ))}
+          {filteredCategories.length === 0 && (
+            <div className="col-span-full py-12 text-center bg-white rounded-2xl border border-dashed border-slate-300 p-8">
+              <p className="text-sm font-bold text-slate-600">
+                Tidak ada panduan yang cocok dengan pencarian "{searchQuery}"
+              </p>
+              <button
+                onClick={() => setSearchQuery('')}
+                className="mt-4 px-4 py-2 bg-[#00263f] hover:bg-[#3c586d] text-white rounded-xl text-xs font-bold transition cursor-pointer"
+              >
+                Reset Pencarian
+              </button>
+            </div>
+          )}
         </section>
       </div>
 
-      <div className="fixed bottom-6 right-6 z-40">
+      {/* SECTION BANTUAN TEKNISI STATIS DI TENGAH BAWAH */}
+      <section className="mt-8 mb-12 sm:mb-16 w-full max-w-2xl mx-auto text-center bg-white rounded-3xl border border-[#d6cfbf] p-6 sm:p-10 shadow-sm">
+        <div className="flex justify-center mb-4">
+          <div className="w-10 h-10 rounded-full bg-[#eeebe1] flex items-center justify-center">
+            <LifeBuoy className="w-5 h-5 text-[#00263f]" />
+          </div>
+        </div>
+        <h3 className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 sm:mb-3">
+          Eskalasi & Bantuan Cepat
+        </h3>
+        <h4 className="text-base sm:text-lg font-black text-[#00263f] mb-3">
+          Kendala Tidak Ditemukan di Panduan Gerai?
+        </h4>
+        <p className="text-xs sm:text-sm text-slate-500 mb-6 sm:mb-8 px-2 leading-relaxed">
+          Jika terjadi kerusakan darurat pada mesin, atau kondisi operasional yang membutuhkan penanganan langsung dari teknisi Kintoun, gunakan portal khusus eskalasi ini.
+        </p>
         <a
           href="https://helpdesk.kintouncoffee.id"
           target="_blank"
           rel="noopener noreferrer"
-          className="px-4.5 py-2.5 rounded-xl bg-[#00263f] hover:bg-[#3c586d] text-white font-black text-xs tracking-wider uppercase shadow-xl hover:shadow-2xl transition transform hover:scale-105 flex items-center gap-2 cursor-pointer border border-white/10"
+          className="inline-flex items-center gap-2 px-6 py-3 sm:py-3.5 rounded-xl bg-[#00263f] hover:bg-[#3c586d] text-white font-black text-xs tracking-wider uppercase transition shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
         >
-          <span>Bantuan Teknisi</span>
-          <ExternalLink className="w-4 h-4 text-slate-300" />
+          <span>Hubungi Bantuan Teknisi</span>
+          <ExternalLink className="w-4 h-4" />
         </a>
-      </div>
+      </section>
     </div>
   );
 };
