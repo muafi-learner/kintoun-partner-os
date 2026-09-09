@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
-import { 
-  PanelLeftClose, 
-  PanelLeftOpen, 
-  Home, 
-  Users, 
-  Coffee, 
-  Wrench, 
-  UserCheck, 
-  PackageCheck, 
+import {
+  Home,
+  Users,
+  Coffee,
+  Wrench,
+  UserCheck,
+  PackageCheck,
   Store,
   ChevronRight,
   X,
@@ -50,105 +48,45 @@ export const Sidebar: React.FC<SidebarProps> = ({
   }
 
   const navItems: NavItem[] = [
-    { 
-      id: 'homepage', 
-      label: 'BERANDA GERAI', 
-      shortLabel: 'Beranda',
-      colorHex: '#00263f',
-      icon: Home 
-    },
-    { 
-      id: 'customer', 
-      label: 'CUSTOMER ISSUE', 
-      shortLabel: 'Customer',
-      colorHex: '#059669',
-      icon: Users 
-    },
-    { 
-      id: 'product', 
-      label: 'PRODUCT ISSUE', 
-      shortLabel: 'Product',
-      colorHex: '#d97706',
-      icon: Coffee 
-    },
-    { 
-      id: 'equipment', 
-      label: 'EQUIPMENT ISSUE', 
-      shortLabel: 'Equipment',
-      colorHex: '#2563eb',
-      icon: Wrench 
-    },
-    { 
-      id: 'people', 
-      label: 'PEOPLE ISSUE', 
-      shortLabel: 'People',
-      colorHex: '#7c3aed',
-      icon: UserCheck 
-    },
-    { 
-      id: 'stock', 
-      label: 'STOCK & SUPPLY', 
-      shortLabel: 'Stock',
-      colorHex: '#ea580c',
-      icon: PackageCheck 
-    },
-    { 
-      id: 'store', 
-      label: 'STORE ISSUE', 
-      shortLabel: 'Store',
-      colorHex: '#0891b2',
-      icon: Store 
-    }
+    { id: 'homepage', label: 'BERANDA GERAI', shortLabel: 'Beranda', colorHex: '#00263f', icon: Home },
+    { id: 'customer', label: 'CUSTOMER ISSUE', shortLabel: 'Customer', colorHex: '#059669', icon: Users },
+    { id: 'product', label: 'PRODUCT ISSUE', shortLabel: 'Product', colorHex: '#d97706', icon: Coffee },
+    { id: 'equipment', label: 'EQUIPMENT ISSUE', shortLabel: 'Equipment', colorHex: '#2563eb', icon: Wrench },
+    { id: 'people', label: 'PEOPLE ISSUE', shortLabel: 'People', colorHex: '#7c3aed', icon: UserCheck },
+    { id: 'stock', label: 'STOCK & SUPPLY', shortLabel: 'Stock', colorHex: '#ea580c', icon: PackageCheck },
+    { id: 'store', label: 'STORE ISSUE', shortLabel: 'Store', colorHex: '#0891b2', icon: Store }
   ];
 
   return (
     <>
-      {/* 1. DESKTOP SIDEBAR: Visible only on md screens and above, in normal layout flow */}
+      {/* 1. DESKTOP SIDEBAR */}
       <aside
         id="app-partner-sidebar"
         style={{ width: isOpen ? '260px' : '68px' }}
-        className="hidden md:flex shrink-0 bg-white border-r border-[#d6cfbf] self-stretch min-h-full py-4 flex-col font-sans select-none transition-all duration-200 shadow-2xs z-10"
+        className="hidden md:flex shrink-0 bg-white relative self-stretch min-h-full py-4 flex-col font-sans select-none transition-all duration-200 shadow-2xs z-10"
       >
-        <div className="sticky top-4 flex flex-col h-fit">
-          {/* Top Header / Toggle Button */}
-          <div className={`flex items-center ${isOpen ? 'justify-between px-4 mb-3' : 'justify-center mb-3'}`}>
-            {isOpen && (
-              <span className="text-[10px] font-black uppercase tracking-widest text-[#908371]">
-                MODUL GERAI
-              </span>
-            )}
-            <button
-              id="btn-toggle-sidebar"
-              onClick={() => setIsOpen(!isOpen)}
-              className="p-1.5 rounded-lg text-slate-500 hover:text-[#00263f] hover:bg-[#eeebe1] transition cursor-pointer"
-              title={isOpen ? 'Tutup Sidebar' : 'Buka Sidebar'}
-              aria-label={isOpen ? 'Tutup Sidebar' : 'Buka Sidebar'}
-            >
-              {isOpen ? (
-                <PanelLeftClose className="w-4 h-4" />
-              ) : (
-                <PanelLeftOpen className="w-4 h-4" />
-              )}
-            </button>
-          </div>
+        {/* Clickable border handle (Garis interaktif) */}
+        <div
+          onClick={() => setIsOpen(!isOpen)}
+          className="absolute top-0 right-0 bottom-0 w-3 cursor-col-resize group flex justify-end z-20"
+          title={isOpen ? 'Tutup Sidebar' : 'Buka Sidebar'}
+        >
+          <div className="w-[1px] h-full bg-[#d6cfbf] group-hover:bg-[#00263f] group-hover:w-[3px] transition-all duration-150" />
+        </div>
 
+        <div className="sticky top-4 flex flex-col h-fit pr-1">
           {/* Navigation List */}
           <nav className="flex flex-col space-y-1 px-2">
             {navItems.map((item) => {
               const isHomepage = item.id === 'homepage';
               const isActive = (() => {
-                if (currentView === 'main-news') {
-                  return isHomepage;
-                }
-                if (isHomepage) {
-                  return currentView === 'home';
-                }
+                if (currentView === 'main-news') return isHomepage;
+                if (isHomepage) return currentView === 'home';
                 if (currentView === 'category' || currentView === 'subcategory' || currentView === 'specific-news') {
                   return selectedCategory === item.id;
                 }
                 return false;
               })();
-
               const IconComponent = item.icon;
 
               return (
@@ -171,26 +109,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       : 'text-slate-700 hover:text-slate-950 hover:bg-[#eeebe1]/80 font-bold text-xs'
                   }`}
                 >
-                  {/* Icon with active color hint */}
-                  <div 
+                  <div
                     className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 transition-colors ${
-                      isActive 
-                        ? 'bg-white/15 text-white' 
+                      isActive
+                        ? 'bg-white/15 text-white'
                         : 'bg-[#eeebe1]/70 text-slate-700 group-hover:bg-[#eeebe1]'
                     }`}
                   >
                     <IconComponent className="w-4 h-4" />
                   </div>
-
-                  {/* Label & Indicator when sidebar is open - full untruncated text */}
                   {isOpen && (
                     <div className="flex-1 flex items-center justify-between min-w-0">
                       <span className="text-xs font-bold whitespace-nowrap tracking-tight">
                         {item.label}
                       </span>
                       {isActive ? (
-                        <span 
-                          className="w-2 h-2 rounded-full shrink-0 shadow-xs ml-1.5" 
+                        <span
+                          className="w-2 h-2 rounded-full shrink-0 shadow-xs ml-1.5"
                           style={{ backgroundColor: item.colorHex }}
                         />
                       ) : (
@@ -203,7 +138,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             })}
           </nav>
 
-          {/* Quick Support & Operational Card directly attached below list (NO huge empty gap!) */}
+          {/* Quick Support & Operational Card */}
           {isOpen && (
             <div className="px-2 pt-3 mt-2 border-t border-[#d6cfbf]/60 space-y-2">
               {onOpenTicketModal && (
@@ -222,7 +157,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   <ChevronRight className="w-3.5 h-3.5 text-amber-400 group-hover:text-amber-700 transition shrink-0" />
                 </button>
               )}
-
               <div className="p-2.5 rounded-xl bg-[#eeebe1]/70 border border-[#d6cfbf] text-[10px] text-slate-600 leading-relaxed">
                 <div className="flex items-center justify-between font-black text-[#00263f]">
                   <span>Kintoun Partner OS</span>
@@ -237,7 +171,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
       </aside>
 
-      {/* 2. MOBILE OFF-CANVAS DRAWER: Shown as overlay on small screens when triggered */}
+      {/* 2. MOBILE OFF-CANVAS DRAWER */}
       {isMobileOpen && (
         <div className="fixed inset-0 z-50 md:hidden flex animate-in fade-in duration-150">
           {/* Backdrop overlay */}
@@ -246,7 +180,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
             onClick={onCloseMobile}
             aria-hidden="true"
           />
-
           {/* Drawer Panel */}
           <aside 
             id="app-mobile-sidebar-drawer"
@@ -266,7 +199,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <X className="w-5 h-5" />
               </button>
             </div>
-
             {/* Navigation items for mobile */}
             <nav className="flex-1 flex flex-col space-y-1.5 px-3 overflow-y-auto">
               {navItems.map((item) => {
@@ -327,7 +259,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 );
               })}
             </nav>
-
             {/* Footer */}
             <div className="mt-auto px-4 pt-3 border-t border-[#d6cfbf]/60">
               <div className="p-3 rounded-xl bg-[#eeebe1]/70 border border-[#d6cfbf] text-xs text-slate-600 font-medium">
