@@ -33,21 +33,10 @@ export const Header: React.FC<HeaderProps> = ({
       id="main-app-header"
       className="sticky top-0 w-full bg-[#00263f] text-white shadow-md border-b border-[#3c586d]/40 transition-colors duration-200 z-50"
     >
-      {/* max-w-none agar mentok kiri kanan */}
       <div className="w-full px-4 sm:px-6 lg:px-8 h-16 sm:h-20 flex items-center justify-between">
         
-        {/* Left: Mobile Menu Toggle + Logo Kintoun Partner */}
+        {/* KIRI: Logo Kintoun Mepet Kiri */}
         <div className="flex items-center gap-2 sm:gap-4">
-          {onToggleMobileSidebar && (
-            <button
-              id="header-mobile-sidebar-toggle"
-              onClick={onToggleMobileSidebar}
-              className="md:hidden p-2 rounded-xl text-white/90 hover:text-white hover:bg-white/10 transition cursor-pointer"
-              aria-label="Buka Menu Modul Gerai"
-            >
-              <Menu className="w-5 h-5" />
-            </button>
-          )}
           <button
             id="header-subpage-logo-btn"
             onClick={onGoHome}
@@ -69,7 +58,7 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
 
-        {/* Right: Essential Tools (Search, Notif, Profile, Admin Upload) */}
+        {/* KANAN: Tools, Profile, & Hamburger Menu (Pojok Kanan Atas) */}
         <div className="flex items-center gap-1.5 sm:gap-3">
           {role === 'admin' && (
             <button
@@ -82,7 +71,6 @@ export const Header: React.FC<HeaderProps> = ({
           )}
 
           <button
-            id="header-search-btn"
             onClick={onOpenSearch}
             className="p-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition cursor-pointer"
             title="Pencarian Materi & SOP"
@@ -91,7 +79,6 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           <button
-            id="header-notif-btn"
             onClick={onOpenNotifications}
             className="relative p-2 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition cursor-pointer"
             title="Notifikasi Update Konten"
@@ -103,9 +90,8 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
 
           <button
-            id="header-profile-btn"
             onClick={onOpenProfile}
-            className="p-1 rounded-xl hover:bg-white/10 text-white transition cursor-pointer flex items-center justify-center focus:outline-none"
+            className="hidden sm:flex p-1 rounded-xl hover:bg-white/10 text-white transition cursor-pointer items-center justify-center focus:outline-none"
             title="Profil & Tingkat Otoritas"
           >
             <div className={`w-7 h-7 sm:w-9 sm:h-9 rounded-xl flex items-center justify-center font-bold text-xs shadow-xs ${
@@ -116,6 +102,17 @@ export const Header: React.FC<HeaderProps> = ({
               {role === 'admin' ? <ShieldCheck className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
             </div>
           </button>
+
+          {/* Icon Hamburger di pojok paling kanan untuk Mobile & Desktop */}
+          {onToggleMobileSidebar && (
+            <button
+              onClick={onToggleMobileSidebar}
+              className="p-2 ml-1 rounded-full text-white/90 hover:text-white hover:bg-white/10 transition cursor-pointer"
+              aria-label="Buka Menu Navigasi"
+            >
+              <Menu className="w-6 h-6 sm:w-7 sm:h-7" />
+            </button>
+          )}
         </div>
 
       </div>
