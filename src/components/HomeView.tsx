@@ -49,13 +49,25 @@ export const HomeView: React.FC<HomeViewProps> = ({
   }, [searchQuery]);
 
   return (
-    <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 font-sans min-h-full flex flex-col justify-between">
+    <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 font-sans min-h-full flex flex-col justify-between">
       <div>
-        <section className="mb-6 sm:mb-8">
+        {/* HERO SECTION - Teks "Welcome to KINTOUN Partner!" */}
+        <section className="mb-10 sm:mb-14 px-2 max-w-3xl">
+          <h1 className="text-4xl sm:text-6xl lg:text-7xl text-[#00263f] leading-[1.1] mb-6">
+            <span className="font-medium">Welcome to</span><br />
+            <span className="font-black tracking-tight uppercase">KINTOUN</span> <span className="font-medium">Partner!</span>
+          </h1>
+          <p className="text-sm sm:text-base text-slate-600 font-medium leading-relaxed max-w-lg">
+            Temukan SOP, panduan alat, dan solusi cepat untuk kelancaran operasional store Kintoun.
+          </p>
+        </section>
+
+        {/* SECTION PANDUAN UTAMA (Main News) */}
+        <section className="mb-10 sm:mb-14">
           <div
             id="main-news-banner"
             onClick={onSelectMainNews}
-            className="group relative w-full rounded-2xl bg-white hover:bg-slate-50/90 border border-[#d6cfbf] p-5 sm:p-7 cursor-pointer transition-all duration-200 shadow-sm hover:shadow-md flex flex-col justify-between overflow-hidden"
+            className="group relative w-full rounded-2xl bg-white hover:bg-slate-50/90 border border-[#d6cfbf] p-6 sm:p-8 cursor-pointer transition-all duration-200 shadow-sm hover:shadow-md flex flex-col justify-between overflow-hidden"
           >
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#00263f] via-[#3c586d] to-[#908371]"></div>
             {isAdmin && (
@@ -66,32 +78,35 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </div>
             )}
             <div className="py-2 max-w-4xl">
-              <h2 className="text-lg sm:text-2xl font-black text-slate-900 group-hover:text-[#00263f] transition leading-snug">
+              <h2 className="text-lg sm:text-xl font-black text-[#00263f] transition leading-snug mb-2">
                 {mainNews.title}
               </h2>
-              <p className="text-xs sm:text-sm text-slate-600 font-medium mt-1.5 leading-relaxed line-clamp-2">
+              <p className="text-xs sm:text-sm text-slate-500 font-medium leading-relaxed line-clamp-2">
                 {mainNews.subtitle} • {mainNews.summary}
               </p>
             </div>
-            <div className="flex flex-wrap items-center justify-between pt-3 mt-3 border-t border-slate-100 text-xs font-semibold text-slate-500 gap-2">
+            
+            {/* Action Bar (Bawah) */}
+            <div className="flex flex-wrap items-center justify-between pt-4 mt-4 border-t border-slate-100 text-xs gap-3">
               <div className="flex items-center gap-3">
-                <span className="flex items-center gap-1.5 bg-[#eeebe1]/80 px-2.5 py-1 rounded-md text-slate-800 font-mono text-[11px] border border-[#d6cfbf]/60">
-                  <FileText className="w-3.5 h-3.5 text-[#00263f]" />
+                <span className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-md text-slate-700 font-mono text-[10px] font-semibold border border-slate-200">
+                  <FileText className="w-3.5 h-3.5 text-slate-500" />
                   {mainNews.pdfFileName} ({mainNews.pdfFileSize || '2.4 MB'})
                 </span>
-                <span className="text-[11px] text-slate-400 hidden sm:inline">
+                <span className="text-[11px] text-slate-400 font-medium hidden sm:inline">
                   Klik untuk menampilkan slide materi langsung
                 </span>
               </div>
-              <span className="inline-flex items-center gap-1.5 text-[#00263f] group-hover:text-[#3c586d] font-bold text-xs group-hover:translate-x-1 transition">
-                Buka Materi Slide Presentasi <ArrowRight className="w-4 h-4" />
+              <span className="inline-flex items-center gap-1.5 text-[#00263f] font-bold text-xs group-hover:translate-x-1 transition">
+                Buka Materi Slide Presentasi <ArrowRight className="w-3.5 h-3.5" />
               </span>
             </div>
           </div>
         </section>
 
+        {/* SECTION CARI & GRID KATEGORI */}
         <section className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 px-1">
-          <p className="hidden md:block text-sm text-slate-600 font-semibold">
+          <p className="hidden md:block text-xs sm:text-sm text-slate-600 font-semibold">
             Pilih topik di bawah atau ketik kata kunci kendala untuk menemukan solusi
           </p>
           <div className="relative w-full md:w-80 shrink-0">
@@ -189,32 +204,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </section>
       </div>
 
-      {/* SECTION BANTUAN TEKNISI STATIS DI TENGAH BAWAH */}
-      <section className="mt-8 mb-12 sm:mb-16 w-full max-w-2xl mx-auto text-center bg-white rounded-3xl border border-[#d6cfbf] p-6 sm:p-10 shadow-sm">
-        <div className="flex justify-center mb-4">
-          <div className="w-10 h-10 rounded-full bg-[#eeebe1] flex items-center justify-center">
-            <LifeBuoy className="w-5 h-5 text-[#00263f]" />
-          </div>
-        </div>
-        <h3 className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 sm:mb-3">
-          Eskalasi & Bantuan Cepat
-        </h3>
-        <h4 className="text-base sm:text-lg font-black text-[#00263f] mb-3">
-          Kendala Tidak Ditemukan di Panduan Gerai?
-        </h4>
-        <p className="text-xs sm:text-sm text-slate-500 mb-6 sm:mb-8 px-2 leading-relaxed">
-          Jika terjadi kerusakan darurat pada mesin, atau kondisi operasional yang membutuhkan penanganan langsung dari teknisi Kintoun, gunakan portal khusus eskalasi ini.
-        </p>
-        <a
-          href="https://helpdesk.kintouncoffee.id"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-6 py-3 sm:py-3.5 rounded-xl bg-[#00263f] hover:bg-[#3c586d] text-white font-black text-xs tracking-wider uppercase transition shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
-        >
-          <span>Hubungi Bantuan Teknisi</span>
-          <ExternalLink className="w-4 h-4" />
-        </a>
-      </section>
+      {/* Bantuan Teknisi Menyusul (Seperti di catatan Anda) */}
     </div>
   );
 };
