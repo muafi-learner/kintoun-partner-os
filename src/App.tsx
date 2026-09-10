@@ -93,7 +93,7 @@ export default function App() {
   const [isHostingerGuideOpen, setIsHostingerGuideOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // SINKRONISASI DATA DARI HOSTINGER (YANG DISEMPURNAKAN)
+  // SINKRONISASI DATA DARI HOSTINGER
   const syncFromServer = useCallback(async () => {
     try {
       const response = await fetch('https://kintouncoffee.id/partner/api/upload.php');
@@ -151,10 +151,8 @@ export default function App() {
             };
           }
         } else if (payload.targetType === 'subcategory') {
-          // Cari subkategori berdasarkan subcategoryId, atau fallback ke kategori utama jika tidak spesifik
           let subIndex = newSubcategories.findIndex(s => s.id === payload.subcategoryId);
           if (subIndex === -1 && payload.categoryId) {
-            // Jika subcategoryId tidak cocok, ambil subkategori pertama yang memiliki categoryId sama
             subIndex = newSubcategories.findIndex(s => s.categoryId === payload.categoryId);
           }
 
@@ -256,10 +254,10 @@ export default function App() {
   };
 
   // FUNGSI HAPUS DOKUMEN (DELETE API)
-  const handleDeletePdf = async (subcategoryId: string) => {
+  const handleDeletePdf = async (targetFileId?: string) => {
     try {
-      const targetSub = subcategories.find(s => s.id === subcategoryId);
-      if (!targetSub || !targetSub.fileId) {
+      const fileIdToDelete = targetFileId || mainNews.fileId;
+      if (!fileIdToDelete) {
         alert('ID dokumen tidak ditemukan.');
         return;
       }
@@ -267,12 +265,13 @@ export default function App() {
       const response = await fetch('https://kintouncoffee.id/partner/api/delete.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: targetSub.fileId })
+        body: JSON.stringify({ id: fileIdToDelete })
       });
 
       const result = await response.json();
       if (result.status === 'success') {
-        syncFromServer(); // Langsung perbarui state lintas perangkat
+        syncFromServer(); 
+        setCurrentView('home'); 
       } else {
         alert(result.message || 'Gagal menghapus dokumen.');
       }
@@ -425,17 +424,6 @@ export default function App() {
                             <span>Kembali</span>
                           </button>
                         </div>
-                        <div className="flex items-center gap-2">
-                          {role === 'admin' && (
-                            <button
-                              onClick={() => setIsUploadOpen(true)}
-                              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-sm transition cursor-pointer"
-                            >
-                              <Upload className="w-3.5 h-3.5" />
-                              <span>Ganti File PPT/PDF</span>
-                            </button>
-                          )}
-                        </div>
                       </div>
 
                       <div id="main-news-viewer-wrapper" className="w-full">
@@ -461,6 +449,7 @@ export default function App() {
                             isAdmin={role === 'admin'}
                             initialPage={targetPdfSlide}
                             onReplacePdf={() => setIsUploadOpen(true)}
+                            onDeletePdf={() => handleDeletePdf(mainNews.fileId)}
                             onBack={() => setCurrentView('home')}
                           />
                         )}
@@ -514,7 +503,7 @@ export default function App() {
                       targetSlide={targetPdfSlide}
                       onBack={() => setCurrentView('category')}
                       onOpenUpload={() => setIsUploadOpen(true)}
-                      onDeletePdf={handleDeletePdf}
+                      onDeletePdf={(subId) => handleDeletePdf(subcategories.find(s => s.id === subId)?.fileId)}
                       isAdmin={role === 'admin'}
                     />
                   )}
