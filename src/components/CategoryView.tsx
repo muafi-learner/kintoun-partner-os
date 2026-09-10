@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { 
-  Upload, FileText, Search, X, Users, Coffee, Wrench, 
+  FileText, Search, X, Users, Coffee, Wrench, 
   UserCheck, PackageCheck, Store, Layers, BookOpen, 
   MessageSquareWarning, HeartHandshake, Smile, PhoneCall, ClipboardEdit, 
   AlertOctagon, Utensils, Hammer, Settings, Droplets, Cpu, Clock, 
@@ -76,11 +76,7 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
             </button>
           </div>
 
-          {isAdmin && (
-            <button onClick={onOpenUpload} className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-400 hover:bg-amber-300 text-slate-950 shadow-sm transition cursor-pointer">
-              <Upload className="w-3.5 h-3.5" /><span>Input PDF {currentCategory.name}</span>
-            </button>
-          )}
+          {/* Tombol oranye "Input PDF..." di atas SUDAH DIHAPUS dari sini */}
         </div>
 
         <div className="bg-white rounded-2xl border border-[#d6cfbf] p-4 sm:p-5 mb-6 shadow-xs flex items-center justify-between gap-4">
