@@ -1,19 +1,22 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
-  X, Upload, FileText, CheckCircle, Image as ImageIcon, 
-  AlertCircle, FolderOpen
+  X, Upload, FileText, AlertCircle, FolderOpen
 } from 'lucide-react';
 import { CategoryId } from '../types';
 import * as pdfjsLib from 'pdfjs-dist';
 
-// Menggunakan CDN untuk worker agar tidak bentrok dengan konfigurasi Vite/React Anda
+// Menggunakan CDN untuk worker
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 interface AdminUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
+  // //code: Tambahan props untuk menerima konteks spesifik dari tombol yang diklik
+  initialTargetType?: 'main-news' | 'subcategory';
+  initialCategoryId?: CategoryId;
+  initialSubcategoryId?: string;
   onUploadSuccess: (payload: {
-    targetType: 'main-news' | 'specific-news' | 'subcategory';
+    targetType: 'main-news' | 'subcategory';
     categoryId?: CategoryId;
     subcategoryId?: string;
     title: string;
@@ -28,12 +31,22 @@ interface AdminUploadModalProps {
   }) => void;
 }
 
+interface BasicSubcategory {
+  id: string;
+  categoryId: string;
+  title: string;
+  description?: string;
+  note?: string;
+}
+
 export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
-  isOpen, onClose, onUploadSuccess
+  isOpen, onClose, onUploadSuccess, initialTargetType, initialCategoryId, initialSubcategoryId
 }) => {
-  const [targetType, setTargetType] = useState<'main-news' | 'specific-news' | 'subcategory'>('main-news');
+  const [targetType, setTargetType] = useState<'main-news' | 'subcategory'>('main-news');
   const [selectedCategory, setSelectedCategory] = useState<CategoryId>('customer');
-  const [selectedSubcategory, setSelectedSubcategory] = useState<string>('customer-complaint');
+  const [selectedSubcategory, setSelectedSubcategory] = useState<string>('');
+  
+  const [subcategoriesList, setSubcategoriesList] = useState<BasicSubcategory[]>([]);
   
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
@@ -49,7 +62,42 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
   const [errorMessage, setErrorMessage] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const thumbnailInputRef = useRef<HTMLInputElement>(null);
+
+  // //code: Menandakan bahwa modal ini dibuka dari tombol "Isi Materi" spesifik
+  const isSpecificUpload = !!initialSubcategoryId;
+
+  // Reset state dan ambil data saat modal dibuka
+  useEffect(() => {
+    if (isOpen) {
+      setTargetType(initialTargetType || 'main-news');
+      setSelectedCategory(initialCategoryId || 'customer');
+      setSelectedSubcategory(initialSubcategoryId || '');
+      setFile(null);
+      setErrorMessage('');
+      setIsProcessing(false);
+      setTitle('');
+      setSubtitle('');
+
+      fetch(`https://kintouncoffee.id/partner/api/get-subcategories.php?t=${Date.now()}`)
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data)) setSubcategoriesList(data);
+        })
+        .catch(err => console.error("Gagal memuat sub-topik dari server", err));
+    }
+  }, [isOpen, initialTargetType, initialCategoryId, initialSubcategoryId]);
+
+  const filteredSubcategories = subcategoriesList.filter(sub => sub.categoryId === selectedCategory);
+
+  useEffect(() => {
+    if (!isSpecificUpload && filteredSubcategories.length > 0) {
+      if (!filteredSubcategories.find(s => s.id === selectedSubcategory)) {
+        setSelectedSubcategory(filteredSubcategories[0].id);
+      }
+    } else if (!isSpecificUpload) {
+      setSelectedSubcategory('');
+    }
+  }, [selectedCategory, filteredSubcategories, selectedSubcategory, isSpecificUpload]);
 
   if (!isOpen) return null;
 
@@ -61,7 +109,7 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
       return;
     }
     setFile(f);
-    if (!title) {
+    if (!title && !isSpecificUpload) {
       const cleanName = f.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ');
       setTitle(cleanName.toUpperCase());
     }
@@ -77,23 +125,31 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
     if (e.dataTransfer.files && e.dataTransfer.files[0]) validateAndSetFile(e.dataTransfer.files[0]);
   };
 
-  const handleThumbnailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const reader = new FileReader();
-      reader.onload = () => setThumbnailPreview(reader.result as string);
-      reader.readAsDataURL(e.target.files[0]);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) {
       setErrorMessage('Silakan pilih file PDF atau PPT yang ingin diupload.');
       return;
     }
-    if (!title.trim()) {
-      setErrorMessage('Judul dokumen wajib diisi.');
-      return;
+
+    let finalTitle = title;
+    let finalSubtitle = subtitle;
+    let finalSummary = summary;
+
+    if (targetType === 'subcategory') {
+      const selectedSubObj = subcategoriesList.find(s => s.id === selectedSubcategory);
+      if (!selectedSubObj) {
+        setErrorMessage('Pilih sub-topik yang valid terlebih dahulu.');
+        return;
+      }
+      finalTitle = selectedSubObj.title;
+      finalSubtitle = selectedSubObj.description || '';
+      finalSummary = selectedSubObj.note || '';
+    } else {
+      if (!title.trim()) {
+        setErrorMessage('Judul dokumen wajib diisi.');
+        return;
+      }
     }
 
     setIsProcessing(true);
@@ -102,14 +158,12 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
     try {
       let extractedText = '';
       
-      // 1. Proses Ekstraksi Teks PDF (Client-Side Parsing)
       if (file.name.toLowerCase().endsWith('.pdf')) {
         setProcessingStatus('Memindai & mengekstrak teks PDF...');
         try {
           const arrayBuffer = await file.arrayBuffer();
           const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
           
-          // Batasi maksimal 20 halaman agar memori admin tidak overload
           const maxPages = Math.min(pdf.numPages, 20); 
           for (let i = 1; i <= maxPages; i++) {
             const page = await pdf.getPage(i);
@@ -118,34 +172,30 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
             extractedText += pageText + ' ';
           }
         } catch (extractErr) {
-          console.warn('Gagal mengekstrak teks, melanjutkan tanpa deep-search:', extractErr);
+          console.warn('Gagal mengekstrak teks:', extractErr);
         }
       }
 
       setProcessingStatus('Mengirim data ke server Hostinger...');
 
-      // 2. Bungkus file mentah dan teks hasil ekstraksi ke FormData
       const formData = new FormData();
       formData.append('file', file);
-      formData.append('title', title.trim());
+      formData.append('title', finalTitle.trim());
       formData.append('targetType', targetType);
-      formData.append('extractedText', extractedText.trim()); // Teks yang diekstrak dikirim ke backend
+      formData.append('extractedText', extractedText.trim());
       
-      if (targetType !== 'main-news') {
-        formData.append('categoryId', selectedCategory);
-      }
       if (targetType === 'subcategory') {
+        formData.append('categoryId', selectedCategory);
         formData.append('subcategoryId', selectedSubcategory);
       }
 
-      // 3. Tembak langsung ke API Hostinger Anda
       const response = await fetch('https://kintouncoffee.id/partner/api/upload.php', {
         method: 'POST',
         body: formData,
       });
 
       if (!response.ok) {
-         throw new Error('Gagal merespons dari server Hostinger. Pastikan API PHP tersedia.');
+         throw new Error('Gagal merespons dari server Hostinger.');
       }
 
       const result = await response.json();
@@ -156,14 +206,13 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
 
       const formattedSize = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
 
-      // 4. Update UI dengan URL asli dari Hostinger
       onUploadSuccess({
         targetType,
-        categoryId: targetType !== 'main-news' ? selectedCategory : undefined,
+        categoryId: targetType === 'subcategory' ? selectedCategory : undefined,
         subcategoryId: targetType === 'subcategory' ? selectedSubcategory : undefined,
-        title: title.trim(),
-        subtitle: subtitle.trim() || 'Modul Operasional Resmi Kintoun 2026',
-        summary: summary.trim() || `Diunggah oleh Administrator pada ${new Date().toLocaleDateString('id-ID')}`,
+        title: finalTitle.trim(),
+        subtitle: finalSubtitle.trim() || 'Modul Operasional Resmi Kintoun 2026',
+        summary: finalSummary.trim() || `Diunggah oleh Administrator pada ${new Date().toLocaleDateString('id-ID')}`,
         pdfUrl: result.fileUrl,
         fileName: file.name,
         fileSize: formattedSize,
@@ -175,7 +224,7 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
       onClose();
     } catch (err: any) {
       console.error(err);
-      setErrorMessage(err.message || 'Koneksi terputus. Pastikan file upload.php sudah ada di Hostinger.');
+      setErrorMessage(err.message || 'Koneksi terputus. Pastikan API tersedia.');
     } finally {
       setIsProcessing(false);
       setProcessingStatus('Mengunggah ke Hostinger...');
@@ -187,12 +236,8 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
       <div className="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in duration-150">
         <div className="bg-[#00263f] text-white px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-amber-500 text-slate-950 flex items-center justify-center font-bold">
-              <Upload className="w-4 h-4" />
-            </div>
             <div>
-              <h3 className="text-base font-bold">Input Dokumen (Hostinger API)</h3>
-              <p className="text-xs text-[#c0c9ce]">Otomatis sinkron ke seluruh gerai</p>
+              <h3 className="text-base font-bold">Input Dokumen</h3>
             </div>
           </div>
           <button onClick={onClose} className="p-1 rounded-full text-white/70 hover:text-white transition cursor-pointer">
@@ -207,77 +252,79 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
             </div>
           )}
 
-          <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">1. Pilih Penempatan Materi</label>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => setTargetType('main-news')}
-                className={`py-2 px-2 text-xs font-bold rounded-lg border text-center transition cursor-pointer ${
-                  targetType === 'main-news' ? 'bg-[#00263f] text-white border-[#00263f]' : 'bg-slate-50 text-slate-700 border-slate-300'
-                }`}
-              >
-                Beranda
-              </button>
-              <button
-                type="button"
-                onClick={() => setTargetType('specific-news')}
-                className={`py-2 px-2 text-xs font-bold rounded-lg border text-center transition cursor-pointer ${
-                  targetType === 'specific-news' ? 'bg-[#00263f] text-white border-[#00263f]' : 'bg-slate-50 text-slate-700 border-slate-300'
-                }`}
-              >
-                Specific News
-              </button>
-              <button
-                type="button"
-                onClick={() => setTargetType('subcategory')}
-                className={`py-2 px-2 text-xs font-bold rounded-lg border text-center transition cursor-pointer ${
-                  targetType === 'subcategory' ? 'bg-[#00263f] text-white border-[#00263f]' : 'bg-slate-50 text-slate-700 border-slate-300'
-                }`}
-              >
-                SOP Gerai
-              </button>
-            </div>
-          </div>
-
-          {targetType !== 'main-news' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          {/* //code: Sembunyikan Pilihan Kategori jika dibuka secara spesifik */}
+          {!isSpecificUpload && (
+            <>
               <div>
-                <label className="block text-xs font-semibold text-slate-600 mb-1">Kategori Utama</label>
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value as CategoryId)}
-                  className="w-full text-xs font-medium bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:outline-none"
-                >
-                  <option value="customer">CUSTOMER ISSUE</option>
-                  <option value="product">PRODUCT ISSUE</option>
-                  <option value="equipment">EQUIPMENT ISSUE</option>
-                  <option value="people">PEOPLE ISSUE</option>
-                  <option value="stock">STOCK & SUPPLY ISSUE</option>
-                  <option value="store">STORE ISSUE</option>
-                </select>
-              </div>
-              {targetType === 'subcategory' && (
-                <div>
-                  <label className="block text-xs font-semibold text-slate-600 mb-1">Sub-Topik</label>
-                  <select
-                    value={selectedSubcategory}
-                    onChange={(e) => setSelectedSubcategory(e.target.value)}
-                    className="w-full text-xs font-medium bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:outline-none"
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">1. Pilih Penempatan Materi</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setTargetType('main-news')}
+                    className={`py-2 px-2 text-xs font-bold rounded-lg border text-center transition cursor-pointer ${
+                      targetType === 'main-news' ? 'bg-[#00263f] text-white border-[#00263f]' : 'bg-slate-50 text-slate-700 border-slate-300'
+                    }`}
                   >
-                    <option value="customer-complaint">Customer Complaint</option>
-                    <option value="service-recovery">Service Recovery</option>
-                    <option value="customer-experience">Customer Experience</option>
-                    <option value="escalation">Escalation</option>
-                    <option value="feedback-complaint">Feedback & Complaint Form</option>
-                  </select>
+                    Beranda
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTargetType('subcategory')}
+                    className={`py-2 px-2 text-xs font-bold rounded-lg border text-center transition cursor-pointer ${
+                      targetType === 'subcategory' ? 'bg-[#00263f] text-white border-[#00263f]' : 'bg-slate-50 text-slate-700 border-slate-300'
+                    }`}
+                  >
+                    SOP Gerai
+                  </button>
+                </div>
+              </div>
+
+              {targetType === 'subcategory' && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">Kategori Utama</label>
+                    <select
+                      value={selectedCategory}
+                      onChange={(e) => setSelectedCategory(e.target.value as CategoryId)}
+                      className="w-full text-xs font-medium bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:outline-none"
+                    >
+                      <option value="customer">CUSTOMER ISSUE</option>
+                      <option value="product">PRODUCT ISSUE</option>
+                      <option value="equipment">EQUIPMENT ISSUE</option>
+                      <option value="people">PEOPLE ISSUE</option>
+                      <option value="stock">STOCK & SUPPLY ISSUE</option>
+                      <option value="store">STORE ISSUE</option>
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">Sub-Topik</label>
+                    <select
+                      value={selectedSubcategory}
+                      onChange={(e) => setSelectedSubcategory(e.target.value)}
+                      className="w-full text-xs font-medium bg-slate-50 border border-slate-300 rounded-lg p-2 text-slate-800 focus:outline-none"
+                      disabled={filteredSubcategories.length === 0}
+                    >
+                      {filteredSubcategories.length > 0 ? (
+                        filteredSubcategories.map(sub => (
+                          <option key={sub.id} value={sub.id}>
+                            {sub.title}
+                          </option>
+                        ))
+                      ) : (
+                        <option value="">Belum ada sub-topik</option>
+                      )}
+                    </select>
+                  </div>
                 </div>
               )}
-            </div>
+            </>
           )}
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">2. Pilih File PDF</label>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+              {!isSpecificUpload ? '2. Pilih File PDF' : 'PILIH FILE PDF'}
+            </label>
             <div
               onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
               onDragLeave={() => setIsDragging(false)}
@@ -307,27 +354,30 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
             </div>
           </div>
 
-          <div className="space-y-3">
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">3. Judul Dokumen</label>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                className="w-full text-xs font-medium border border-slate-300 rounded-lg p-2.5"
-                required
-              />
+          {/* Sembunyikan form Judul jika SOP Gerai ATAU Specific Upload */}
+          {!isSpecificUpload && targetType === 'main-news' && (
+            <div className="space-y-3">
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">3. Judul Dokumen</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="w-full text-xs font-medium border border-slate-300 rounded-lg p-2.5"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Sub-Judul / Ringkasan Singkat</label>
+                <input
+                  type="text"
+                  value={subtitle}
+                  onChange={(e) => setSubtitle(e.target.value)}
+                  className="w-full text-xs font-medium border border-slate-300 rounded-lg p-2.5"
+                />
+              </div>
             </div>
-            <div>
-              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">Sub-Judul / Ringkasan Singkat</label>
-              <input
-                type="text"
-                value={subtitle}
-                onChange={(e) => setSubtitle(e.target.value)}
-                className="w-full text-xs font-medium border border-slate-300 rounded-lg p-2.5"
-              />
-            </div>
-          </div>
+          )}
 
           <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200 mt-4">
             <button type="button" onClick={onClose} disabled={isProcessing} className="px-4 py-2 text-xs font-bold text-slate-600">Batal</button>
