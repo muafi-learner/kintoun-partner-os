@@ -399,10 +399,12 @@ export default function App() {
                 />
                 <HomeView
                   mainNews={mainNews}
+                  subcategories={subcategories} // -> TAMBAHKAN BARIS INI
                   onSelectMainNews={() => {
                     setTargetPdfSlide(1);
                     setCurrentView('main-news');
                   }}
+// ... kode sisanya biarkan sama
                   onSelectCategory={(catId) => {
                     setSelectedCategory(catId);
                     setActiveDashboard(null);
