@@ -63,16 +63,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
         {/* SECTION PANDUAN UTAMA (Main News) DENGAN LABEL RECENT UPDATE */}
         <section className="mb-10 sm:mb-14">
-          <div className="flex items-center gap-2 mb-3 px-1">
-            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-            <h3 className="text-xs font-black uppercase tracking-wider text-slate-500">
-              Recent Update
-            </h3>
-          </div>
           <div
             id="main-news-banner"
             onClick={onSelectMainNews}
-            className="group relative w-full rounded-2xl bg-white hover:bg-slate-50/90 border border-[#d6cfbf] p-6 sm:p-8 cursor-pointer transition-all duration-200 shadow-sm hover:shadow-md flex flex-col justify-between overflow-hidden"
+            className="group relative w-full rounded-2xl bg-white hover:bg-slate-50/90 border border-[#d6cfbf] p-5 sm:p-7 cursor-pointer transition-all duration-200 shadow-sm hover:shadow-md flex flex-col justify-between overflow-hidden"
           >
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#00263f] via-[#3c586d] to-[#908371]"></div>
             
