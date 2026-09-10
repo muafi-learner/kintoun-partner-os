@@ -5,7 +5,7 @@ import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.js?url';
 import { getFileFromDB, getCachedPdf, setCachedPdf, generateSamplePdfUint8Array } from '../services/storage';
 import {
   ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Download, Maximize2, Minimize2,
-  FileText, AlertCircle, Loader2, Trash2
+  FileText, AlertCircle, Loader2, Trash2, Upload
 } from 'lucide-react';
 
 if (typeof window !== 'undefined') {
@@ -29,7 +29,7 @@ interface VisualPdfSlideViewerProps {
   isAdmin?: boolean;
   initialPage?: number;
   onReplacePdf?: () => void;
-  onDeletePdf?: () => void; // Prop handler hapus dokumen
+  onDeletePdf?: () => void;
   onBack?: () => void;
 }
 
@@ -283,9 +283,8 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
         isFullscreen ? 'bg-slate-950 rounded-none border-none' : 'bg-[#f6f4ee] rounded-2xl border border-[#d6cfbf] shadow-sm'
       }`}
     >
-      {/* Top Toolbar - Clean Minimalist Look */}
+      {/* Top Toolbar */}
       <div className="bg-[#00263f] text-slate-200 px-4 py-3 flex items-center justify-between gap-3 border-b border-[#3c586d]/40">
-        {/* Left: Simple File Name Indicator */}
         <div className="flex items-center gap-2.5 min-w-0">
           <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 border border-emerald-500/30">
             <FileText className="w-3.5 h-3.5" />
@@ -295,9 +294,9 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
           </h4>
         </div>
 
-        {/* Right: Icon-based Controls Only */}
+        {/* Right: Icon-based Controls (Urutan: Zoom, Fullscreen, Download, Upload, Hapus) */}
         <div className="flex items-center gap-1.5">
-          {/* Zoom Controls */}
+          {/* 1. Zoom Controls */}
           <div className="flex items-center bg-slate-800/80 rounded-lg p-0.5 border border-slate-700/50">
             <button onClick={() => setScale((prev) => Math.max(prev - 0.15, 0.6))} className="p-1.5 hover:bg-slate-700 rounded text-slate-300 hover:text-white transition cursor-pointer" title="Perkecil Slide">
               <ZoomOut className="w-3.5 h-3.5" />
@@ -308,19 +307,26 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
             </button>
           </div>
 
-          {/* Download Button (Icon Only) */}
+          {/* 2. Fullscreen Toggle */}
+          <button onClick={toggleFullscreen} className="p-2 bg-slate-800/80 hover:bg-slate-700 rounded-lg text-slate-300 hover:text-white transition cursor-pointer border border-slate-700/50" title="Layar Penuh">
+            {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+          </button>
+
+          {/* 3. Download Button */}
           {isAdmin && pdfUrl && (
             <a href={pdfUrl} download={fileName} className="p-2 bg-slate-800/80 hover:bg-slate-700 rounded-lg text-slate-300 hover:text-white transition border border-slate-700/50 cursor-pointer" title="Unduh Berkas Asli">
               <Download className="w-3.5 h-3.5" />
             </a>
           )}
 
-          {/* Fullscreen Toggle */}
-          <button onClick={toggleFullscreen} className="p-2 bg-slate-800/80 hover:bg-slate-700 rounded-lg text-slate-300 hover:text-white transition cursor-pointer border border-slate-700/50" title="Layar Penuh">
-            {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
-          </button>
+          {/* 4. Upload / Replace Button (Icon Only, Admin Only) */}
+          {isAdmin && onReplacePdf && (
+            <button onClick={onReplacePdf} className="p-2 bg-slate-800/80 hover:bg-slate-700 rounded-lg text-amber-400 hover:text-amber-300 transition border border-slate-700/50 cursor-pointer" title="Ganti File PPT/PDF">
+              <Upload className="w-3.5 h-3.5" />
+            </button>
+          )}
 
-          {/* Delete / Trash Icon Button (Admin Only) */}
+          {/* 5. Delete / Trash Icon Button (Admin Only) */}
           {isAdmin && onDeletePdf && (
             <button 
               onClick={handleDeleteClick} 
