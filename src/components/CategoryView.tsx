@@ -368,32 +368,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
           </div>
         </div>
       )}
-
-      <section className="mt-8 mb-12 sm:mb-16 w-full max-w-2xl mx-auto text-center bg-white rounded-3xl border border-[#d6cfbf] p-6 sm:p-10 shadow-sm">
-        <div className="flex justify-center mb-4">
-          <div className="w-10 h-10 rounded-full bg-[#eeebe1] flex items-center justify-center">
-            <LifeBuoy className="w-5 h-5 text-[#00263f]" />
-          </div>
-        </div>
-        <h3 className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 sm:mb-3">
-          Eskalasi & Bantuan Cepat
-        </h3>
-        <h4 className="text-base sm:text-lg font-black text-[#00263f] mb-3">
-          Kendala Tidak Ditemukan di Panduan Gerai?
-        </h4>
-        <p className="text-xs sm:text-sm text-slate-500 mb-6 sm:mb-8 px-2 leading-relaxed">
-          Jika terjadi kerusakan darurat pada mesin, atau kondisi operasional yang membutuhkan penanganan langsung dari teknisi Kintoun, gunakan portal khusus eskalasi ini.
-        </p>
-        <a
-          href="https://helpdesk.kintouncoffee.id"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-6 py-3 sm:py-3.5 rounded-xl bg-[#00263f] hover:bg-[#3c586d] text-white font-black text-xs tracking-wider uppercase transition shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
-        >
-          <span>Hubungi Bantuan Teknisi</span>
-          <ExternalLink className="w-4 h-4" />
-        </a>
-      </section>
     </div>
   );
 };
