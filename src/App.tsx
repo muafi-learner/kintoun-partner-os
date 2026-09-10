@@ -16,7 +16,7 @@ import {
   INITIAL_MAIN_NEWS, 
   INITIAL_SPECIFIC_NEWS, 
   INITIAL_SUBCATEGORIES, 
-  INITIAL_NOTIFICATIONS 
+  CATEGORIES as DEFAULT_CATEGORIES
 } from './data/initialData';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
@@ -92,6 +92,21 @@ export default function App() {
   const [isTicketOpen, setIsTicketOpen] = useState(false);
   const [isHostingerGuideOpen, setIsHostingerGuideOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // SINKRONISASI KATEGORI DARI HOSTINGER
+  const syncCategoriesFromServer = useCallback(async () => {
+    try {
+      const response = await fetch('https://kintouncoffee.id/partner/api/categories.json');
+      if (response.ok) {
+        const data = await response.json();
+        if (Array.isArray(data) && data.length > 0) {
+          // Jika Anda menggunakan state terpusat untuk kategori, bisa diperbarui di sini
+        }
+      }
+    } catch (error) {
+      console.error("Gagal sinkronisasi kategori dari server", error);
+    }
+  }, []);
 
   // SINKRONISASI DATA DARI HOSTINGER
   const syncFromServer = useCallback(async () => {
@@ -183,10 +198,14 @@ export default function App() {
   useEffect(() => {
     if (isAuthenticated) {
       syncFromServer();
-      const interval = setInterval(syncFromServer, 10000); 
+      syncCategoriesFromServer();
+      const interval = setInterval(() => {
+        syncFromServer();
+        syncCategoriesFromServer();
+      }, 10000); 
       return () => clearInterval(interval);
     }
-  }, [isAuthenticated, syncFromServer]);
+  }, [isAuthenticated, syncFromServer, syncCategoriesFromServer]);
 
   const handleLogin = (newProfile: UserProfile) => {
     setUser(newProfile);
