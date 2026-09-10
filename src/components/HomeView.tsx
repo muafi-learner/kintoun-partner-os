@@ -366,7 +366,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     </button>
                   )}
                   <div>
-                    <div className="flex gap-3 mb-3 pr-8">
+                    {/* //code: Tambahkan items-center di sini agar posisinya pas di tengah vertikal */}
+                    <div className="flex items-center gap-3 mb-3 pr-8">
                       <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0">
                         <TicketIcon className="w-5 h-5" />
                       </div>
