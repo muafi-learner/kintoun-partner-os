@@ -285,3 +285,35 @@ export const INITIAL_NOTIFICATIONS: AppNotification[] = [
     }
   }
 ];
+
+import { TicketTemplate } from '../types'; // Tambahkan ini di atas
+
+export const INITIAL_TICKET_TEMPLATES: TicketTemplate[] = [
+  {
+    id: 'tkt_maintenance',
+    department: 'MAINTENANCE',
+    title: 'PERBAIKAN MESIN & ASET',
+    description: 'Pengajuan perbaikan mesin kopi, chiller, AC, atau aset fisik gerai yang rusak.',
+    sla: '1x24 Jam',
+    iconName: 'wrench',
+    badgeColor: 'bg-blue-100 text-blue-700 border-blue-200'
+  },
+  {
+    id: 'tkt_hc_sp',
+    department: 'HUMAN CAPITAL',
+    title: 'PERMINTAAN SURAT PERINGATAN (SP)',
+    description: 'Form pengajuan SP 1, 2, atau 3 untuk pelanggaran SOP atau indispliner kru gerai.',
+    sla: '2x24 Jam',
+    iconName: 'shield-alert',
+    badgeColor: 'bg-rose-100 text-rose-700 border-rose-200'
+  },
+  {
+    id: 'tkt_hc_resign',
+    department: 'HUMAN CAPITAL',
+    title: 'LAPORAN RESIGN / KELUAR',
+    description: 'Pemberitahuan kru yang mengundurkan diri untuk proses offboarding & pencarian pengganti.',
+    sla: '1x24 Jam',
+    iconName: 'user-x',
+    badgeColor: 'bg-rose-100 text-rose-700 border-rose-200'
+  }
+];
