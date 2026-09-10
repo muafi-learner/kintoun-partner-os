@@ -93,50 +93,47 @@ export default function App() {
   const [isHostingerGuideOpen, setIsHostingerGuideOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // SINKRONISASI KATEGORI KE DOMAIN PUBLIK HOSTINGER DENGAN ANTI-CACHE
-  const syncCategoriesFromServer = useCallback(async () => {
-    try {
-      const response = await fetch(`https://kintouncoffee.id/partner/api/get-categories.php?t=${Date.now()}`);
-      if (!response.ok) return;
-
-      const textResponse = await response.text();
-      if (!textResponse || textResponse.trim() === '') {
-        return; 
-      }
-
-      const data = JSON.parse(textResponse);
-      if (Array.isArray(data) && data.length > 0) {
-        // Data kategori berhasil dimuat dari server publik
-      }
-    } catch (error) {
-      console.error("Gagal sinkronisasi kategori dari server", error);
-    }
-  }, []);
-  
-  // SINKRONISASI DATA FILE PDF DARI HOSTINGER DENGAN PENGAMAN ANTI-CACHE
+  // SINKRONISASI DATA DARI HOSTINGER
   const syncFromServer = useCallback(async () => {
     try {
-      const response = await fetch(`https://kintouncoffee.id/partner/api/upload.php?t=${Date.now()}`);
-      
-      const textResponse = await response.text();
-      if (!textResponse || textResponse.trim() === '') {
-        return; 
+      // 1. AMBIL TEKS SUB-TOPIK TERBARU DARI SERVER (BUKAN DARI LOKAL)
+      let latestSubcategories = INITIAL_SUBCATEGORIES;
+      try {
+        const subResponse = await fetch(`https://kintouncoffee.id/partner/api/subcategories.json?t=${Date.now()}`);
+        if (subResponse.ok) {
+          const subText = await subResponse.text();
+          if (subText && subText.trim() !== '') {
+            const parsedSubs = JSON.parse(subText);
+            if (Array.isArray(parsedSubs) && parsedSubs.length > 0) {
+              latestSubcategories = parsedSubs;
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Gagal mengambil teks subkategori dari server", e);
       }
 
-      const items = JSON.parse(textResponse);
+      // 2. AMBIL STATUS FILE PDF DARI UPLOAD.PHP
+      const response = await fetch(`https://kintouncoffee.id/partner/api/upload.php?t=${Date.now()}`);
+      const textResponse = await response.text();
       
+      if (!textResponse || textResponse.trim() === '') return;
+
+      const items = JSON.parse(textResponse);
       if (!Array.isArray(items)) return;
 
       if (items.length === 0) {
         setMainNews(INITIAL_MAIN_NEWS);
         setSpecificNews(INITIAL_SPECIFIC_NEWS);
-        setSubcategories(INITIAL_SUBCATEGORIES);
+        setSubcategories(latestSubcategories); // Pakai data server terbaru
         return;
       }
 
       let newMainNews = { ...INITIAL_MAIN_NEWS };
       let newSpecificNews = { ...INITIAL_SPECIFIC_NEWS };
-      let newSubcategories = INITIAL_SUBCATEGORIES.map(sub => ({
+      
+      // GUNAKAN DATA SERVER TERBARU SEBAGAI CETAKAN DASAR
+      let newSubcategories = latestSubcategories.map(sub => ({
         ...sub,
         isUploaded: false,
         pdfUrl: undefined,
@@ -209,14 +206,12 @@ export default function App() {
   useEffect(() => {
     if (isAuthenticated) {
       syncFromServer();
-      syncCategoriesFromServer();
       const interval = setInterval(() => {
         syncFromServer();
-        syncCategoriesFromServer();
       }, 10000); 
       return () => clearInterval(interval);
     }
-  }, [isAuthenticated, syncFromServer, syncCategoriesFromServer]);
+  }, [isAuthenticated, syncFromServer]);
 
   const handleLogin = (newProfile: UserProfile) => {
     setUser(newProfile);
