@@ -560,6 +560,7 @@ export default function App() {
             initialTargetType={uploadTargetType}
             initialCategoryId={uploadCategoryId}
             initialSubcategoryId={uploadSubcategoryId}
+            subcategories={subcategories} // -> TAMBAHKAN BARIS INI
           />
           <NotificationModal
             isOpen={isNotifOpen}
