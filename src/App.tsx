@@ -52,17 +52,27 @@ export default function App() {
   });
 
   const [user, setUser] = useState<UserProfile>(() => {
-    const savedRole = localStorage.getItem(STORAGE_KEYS.CURRENT_ROLE) as Role;
-    if (savedRole === 'admin') {
-      return {
-        id: 'adm_01',
-        name: 'Head Office Administrator',
-        role: 'admin',
-        storeName: 'HQ & Operational Central Kintoun',
-        email: 'admin.ops@kintoun.id'
-      };
+    // 1. Coba baca dari sessionStorage (jika login tanpa Remember Me)
+    const sessionData = sessionStorage.getItem('kintoun_session');
+    if (sessionData) {
+      try {
+        return JSON.parse(sessionData);
+      } catch (e) {
+        console.error("Gagal membaca session data", e);
+      }
     }
-    // Jika tidak ada data tersimpan, kembalikan data kosong, biarkan user login dulu
+
+    // 2. Coba baca dari localStorage (jika login dengan Remember Me)
+    const localData = localStorage.getItem('kintoun_session');
+    if (localData) {
+      try {
+        return JSON.parse(localData);
+      } catch (e) {
+         console.error("Gagal membaca local data", e);
+      }
+    }
+
+    // 3. Fallback jika tidak ada sesi yang tersimpan
     return {
       id: '',
       name: '',
