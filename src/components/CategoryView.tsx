@@ -54,7 +54,7 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
   const [editingSubcat, setEditingSubcat] = useState<SubcategoryCard | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Sinkronisasi data saat props berubah
+  // Sinkronisasi data saat props berubah dari App.tsx
   React.useEffect(() => {
     setSubcategoriesList(initialSubcategories);
   }, [initialSubcategories]);
@@ -68,6 +68,7 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
     return filtered.filter((s) => s.title.toLowerCase().includes(q) || s.description.toLowerCase().includes(q));
   }, [subcategoriesList, categoryId, searchQuery]);
 
+  // Fungsi menyimpan editan judul/deskripsi
   const handleSaveSubcatEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingSubcat) return;
@@ -90,6 +91,38 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
         setEditingSubcat(null);
       } else {
         alert(result.message || 'Gagal menyimpan perubahan.');
+      }
+    } catch (error) {
+      console.error("Gagal terhubung ke server", error);
+      alert('Koneksi ke server terputus.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Fungsi baru untuk MENGHAPUS kartu sub-topik
+  const handleDeleteSubcat = async () => {
+    if (!editingSubcat) return;
+    
+    const confirmDelete = window.confirm(`Apakah Anda yakin ingin menghapus sub-topik "${editingSubcat.title}" secara permanen?`);
+    if (!confirmDelete) return;
+
+    setIsSaving(true);
+    try {
+      const updatedList = subcategoriesList.filter(sub => sub.id !== editingSubcat.id);
+
+      const response = await fetch('https://kintouncoffee.id/partner/api/update-subcategories.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subcategories: updatedList })
+      });
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        setSubcategoriesList(updatedList);
+        setEditingSubcat(null);
+      } else {
+        alert(result.message || 'Gagal menghapus kartu.');
       }
     } catch (error) {
       console.error("Gagal terhubung ke server", error);
@@ -214,7 +247,7 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
         </div>
       </div>
 
-      {/* MODAL EDIT KARTU SUB-TOPIK */}
+      {/* MODAL EDIT KARTU SUB-TOPIK DENGAN TOMBOL HAPUS */}
       {editingSubcat && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl animate-in fade-in duration-200">
@@ -248,25 +281,37 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
                 />
               </div>
 
-              <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+              {/* FOOTER MODAL DENGAN LAYOUT TERPISAH (HAPUS DI KIRI, SIMPAN DI KANAN) */}
+              <div className="flex items-center justify-between pt-4 border-t border-slate-100 mt-6">
                 <button
                   type="button"
-                  onClick={() => setEditingSubcat(null)}
-                  className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
+                  onClick={handleDeleteSubcat}
                   disabled={isSaving}
-                  className="px-5 py-2 rounded-xl text-xs font-black bg-[#00263f] hover:bg-[#3c586d] text-white transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-50 text-rose-600 hover:bg-rose-100 hover:text-rose-700 transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
                 >
-                  {isSaving ? 'Menyimpan...' : (
-                    <>
-                      <Check className="w-4 h-4" /> Simpan Perubahan
-                    </>
-                  )}
+                  <Trash2 className="w-4 h-4" /> Hapus Kartu
                 </button>
+                
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditingSubcat(null)}
+                    className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer"
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={isSaving}
+                    className="px-5 py-2 rounded-xl text-xs font-black bg-[#00263f] hover:bg-[#3c586d] text-white transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                  >
+                    {isSaving ? 'Menyimpan...' : (
+                      <>
+                        <Check className="w-4 h-4" /> Simpan
+                      </>
+                    )}
+                  </button>
+                </div>
               </div>
             </form>
           </div>
