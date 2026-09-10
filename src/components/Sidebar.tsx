@@ -1,17 +1,17 @@
 import React from 'react';
-import {
-  Home,
-  Users,
-  Coffee,
-  Wrench,
-  UserCheck,
-  PackageCheck,
-  Store,
-  ChevronRight,
-  X,
-  Building,
-  Store as StoreIcon,
-  LogOut
+import { 
+  Home, 
+  Users, 
+  Coffee, 
+  Wrench, 
+  UserCheck, 
+  PackageCheck, 
+  Store, 
+  X, 
+  Building, 
+  Store as StoreIcon, 
+  LogOut,
+  LifeBuoy
 } from 'lucide-react';
 import { CategoryId, Role, UserProfile } from '../types';
 
@@ -29,7 +29,7 @@ interface SidebarProps {
 }
 
 interface NavItem {
-  id: CategoryId | 'homepage';
+  id: CategoryId | 'homepage' | 'ticket-catalog';
   label: string;
   shortLabel: string;
   colorHex: string;
@@ -43,6 +43,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectHomepage,
   isMobileOpen = false,
   onCloseMobile,
+  onOpenTicketModal,
   role,
   user,
   onLogout
@@ -54,7 +55,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'equipment', label: 'EQUIPMENT ISSUE', shortLabel: 'Equipment', colorHex: '#2563eb', icon: Wrench },
     { id: 'people', label: 'PEOPLE ISSUE', shortLabel: 'People', colorHex: '#7c3aed', icon: UserCheck },
     { id: 'stock', label: 'STOCK & SUPPLY', shortLabel: 'Stock', colorHex: '#ea580c', icon: PackageCheck },
-    { id: 'store', label: 'STORE ISSUE', shortLabel: 'Store', colorHex: '#0891b2', icon: Store }
+    { id: 'store', label: 'STORE ISSUE', shortLabel: 'Store', colorHex: '#0891b2', icon: Store },
+    // TAMBAHAN MENU ESKALASI TIKET DI SIDEBAR
+    { id: 'ticket-catalog', label: 'ESKALASI TIKET', shortLabel: 'Tiket', colorHex: '#d97706', icon: LifeBuoy }
   ];
 
   return (
@@ -90,14 +93,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <nav className="flex-1 overflow-y-auto flex flex-col space-y-1.5 px-3">
               {navItems.map((item) => {
                 const isHomepage = item.id === 'homepage';
+                const isTicketCatalog = item.id === 'ticket-catalog';
+                
                 const isActive = (() => {
                   if (currentView === 'main-news') return false;
                   if (isHomepage) return currentView === 'home';
+                  if (isTicketCatalog) return currentView === 'ticket-catalog';
                   if (currentView === 'category' || currentView === 'subcategory' || currentView === 'specific-news') {
                     return selectedCategory === item.id;
                   }
                   return false;
                 })();
+                
                 const IconComponent = item.icon;
 
                 return (
@@ -106,6 +113,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     onClick={() => {
                       if (isHomepage) {
                         onSelectHomepage();
+                      } else if (isTicketCatalog) {
+                        if (onOpenTicketModal) onOpenTicketModal();
                       } else {
                         onSelectCategory(item.id as CategoryId);
                       }
