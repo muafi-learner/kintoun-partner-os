@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight, ArrowLeft, Upload, ExternalLink } from 'lucide-react';
+import { ChevronRight, ArrowLeft, ExternalLink } from 'lucide-react';
 import { SubcategoryCard } from '../types';
 import { PdfViewer } from './PdfViewer';
 import { EmptyModuleState } from './EmptyModuleState';
@@ -18,7 +18,7 @@ interface LearningCardsViewProps {
   cardData: SubcategoryCard;
   onBack: () => void;
   onOpenUpload: () => void;
-  onDeletePdf?: (subcategoryId: string) => void; // Prop baru untuk handler hapus
+  onDeletePdf?: (subcategoryId: string) => void;
   isAdmin: boolean;
   targetSlide?: number;
 }
@@ -36,7 +36,7 @@ export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
 
   return (
     <div className="relative flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-6xl mx-auto w-full font-sans pb-20">
-      {/* Top Breadcrumb & Action Row */}
+      {/* Top Breadcrumb Row (Tanpa tombol oranye yang sesak) */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
         <div className="flex items-center gap-2">
           <button
@@ -69,19 +69,6 @@ export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
               {formatTitleCase(cardData.title)}
             </span>
           </nav>
-        </div>
-
-        <div className="flex items-center gap-2">
-          {isAdmin && (
-            <button
-              id="btn-admin-upload-ppt"
-              onClick={onOpenUpload}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow-sm transition cursor-pointer"
-            >
-              <Upload className="w-3.5 h-3.5" />
-              <span>{isUploaded ? 'Ganti File PPT/PDF' : 'Unggah File PDF / PPT'}</span>
-            </button>
-          )}
         </div>
       </div>
 
