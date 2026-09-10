@@ -10,13 +10,15 @@ import {
   SubcategoryCard, 
   AppNotification, 
   TicketRequest,
-  PdfSlide
+  PdfSlide,
+  TicketTemplate
 } from './types';
 import { 
   INITIAL_MAIN_NEWS, 
   INITIAL_SPECIFIC_NEWS, 
   INITIAL_SUBCATEGORIES, 
-  CATEGORIES as DEFAULT_CATEGORIES
+  CATEGORIES as DEFAULT_CATEGORIES,
+  INITIAL_TICKET_TEMPLATES
 } from './data/initialData';
 import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
@@ -34,6 +36,7 @@ import { LoginModal } from './components/LoginModal';
 import { PdfViewer } from './components/PdfViewer';
 import { EmptyModuleState } from './components/EmptyModuleState';
 import { STORAGE_KEYS } from './services/storage';
+import { TicketCatalogView } from './components/TicketCatalogView';
 
 const generateSlideDeck = (title: string, fileName: string, fileSize: string, date: string, extractedText: string = ''): PdfSlide[] => [
   {
@@ -56,7 +59,8 @@ export default function App() {
     return localStorage.getItem('kintoun_is_authenticated') === 'true';
   });
 
-  const [currentView, setCurrentView] = useState<'home' | 'main-news' | 'category' | 'specific-news' | 'subcategory' | 'dashboard'>('home');
+  // State navigasi utama, ditambah 'ticket-catalog'
+  const [currentView, setCurrentView] = useState<'home' | 'main-news' | 'category' | 'specific-news' | 'subcategory' | 'dashboard' | 'ticket-catalog'>('home');
   const [selectedCategory, setSelectedCategory] = useState<CategoryId>('customer');
   const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>('customer-complaint');
   const [activeDashboard, setActiveDashboard] = useState<string | null>(null);
@@ -83,6 +87,7 @@ export default function App() {
   const [mainNews, setMainNews] = useState<NewsArticle>(INITIAL_MAIN_NEWS);
   const [specificNews, setSpecificNews] = useState<Record<CategoryId, NewsArticle>>(INITIAL_SPECIFIC_NEWS);
   const [subcategories, setSubcategories] = useState<SubcategoryCard[]>(INITIAL_SUBCATEGORIES);
+  const [ticketTemplates, setTicketTemplates] = useState<TicketTemplate[]>(INITIAL_TICKET_TEMPLATES);
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [tickets, setTickets] = useState<TicketRequest[]>([]);
 
@@ -96,7 +101,7 @@ export default function App() {
   // SINKRONISASI DATA DARI HOSTINGER
   const syncFromServer = useCallback(async () => {
     try {
-      // 1. AMBIL TEKS SUB-TOPIK TERBARU DARI SERVER (BUKAN DARI LOKAL)
+      // 1. AMBIL TEKS SUB-TOPIK TERBARU
       let latestSubcategories = INITIAL_SUBCATEGORIES;
       try {
         const subResponse = await fetch(`https://kintouncoffee.id/partner/api/subcategories.json?t=${Date.now()}`);
@@ -113,7 +118,25 @@ export default function App() {
         console.error("Gagal mengambil teks subkategori dari server", e);
       }
 
-      // 2. AMBIL STATUS FILE PDF DARI UPLOAD.PHP
+      // 2. AMBIL DATA KATALOG TIKET TERBARU
+      let latestTickets = INITIAL_TICKET_TEMPLATES;
+      try {
+        const tktResponse = await fetch(`https://kintouncoffee.id/partner/api/tickets.json?t=${Date.now()}`);
+        if (tktResponse.ok) {
+          const tktText = await tktResponse.text();
+          if (tktText && tktText.trim() !== '') {
+            const parsedTkts = JSON.parse(tktText);
+            if (Array.isArray(parsedTkts) && parsedTkts.length > 0) {
+              latestTickets = parsedTkts;
+            }
+          }
+        }
+      } catch (e) {
+        console.error("Gagal mengambil data tiket dari server", e);
+      }
+      setTicketTemplates(latestTickets);
+
+      // 3. AMBIL STATUS FILE PDF
       const response = await fetch(`https://kintouncoffee.id/partner/api/upload.php?t=${Date.now()}`);
       const textResponse = await response.text();
       
@@ -125,14 +148,13 @@ export default function App() {
       if (items.length === 0) {
         setMainNews(INITIAL_MAIN_NEWS);
         setSpecificNews(INITIAL_SPECIFIC_NEWS);
-        setSubcategories(latestSubcategories); // Pakai data server terbaru
+        setSubcategories(latestSubcategories);
         return;
       }
 
       let newMainNews = { ...INITIAL_MAIN_NEWS };
       let newSpecificNews = { ...INITIAL_SPECIFIC_NEWS };
       
-      // GUNAKAN DATA SERVER TERBARU SEBAGAI CETAKAN DASAR
       let newSubcategories = latestSubcategories.map(sub => ({
         ...sub,
         isUploaded: false,
@@ -376,174 +398,155 @@ export default function App() {
           />
 
           <main className="flex-1 flex flex-col">
-            {currentView === 'home' ? (
-              <>
-                <Sidebar
-                  currentView={currentView}
-                  selectedCategory={selectedCategory}
-                  onSelectCategory={(catId) => {
-                    setSelectedCategory(catId);
-                    setActiveDashboard(null);
-                    setCurrentView('category');
-                  }}
-                  onSelectHomepage={() => {
-                    setCurrentView('home');
-                    setActiveDashboard(null);
-                  }}
-                  isMobileOpen={isMobileSidebarOpen}
-                  onCloseMobile={() => setIsMobileSidebarOpen(false)}
-                  onOpenTicketModal={() => setIsTicketOpen(true)}
-                  role={role}
-                  user={user}
-                  onLogout={handleLogout}
-                />
-                <HomeView
-                  mainNews={mainNews}
-                  subcategories={subcategories} // -> TAMBAHKAN BARIS INI
-                  onSelectMainNews={() => {
-                    setTargetPdfSlide(1);
-                    setCurrentView('main-news');
-                  }}
-// ... kode sisanya biarkan sama
-                  onSelectCategory={(catId) => {
-                    setSelectedCategory(catId);
-                    setActiveDashboard(null);
-                    setCurrentView('category');
-                  }}
-                  onOpenTicketModal={() => setIsTicketOpen(true)}
-                  onOpenUpload={() => setIsUploadOpen(true)}
-                  isAdmin={role === 'admin'}
-                />
-              </>
-            ) : (
-              <div className="flex-1 flex w-full relative">
-                <Sidebar
-                  currentView={currentView}
-                  selectedCategory={selectedCategory}
-                  onSelectCategory={(catId) => {
-                    setSelectedCategory(catId);
-                    setActiveDashboard(null);
-                    setCurrentView('category');
-                  }}
-                  onSelectHomepage={() => {
-                    setCurrentView('home');
-                    setActiveDashboard(null);
-                  }}
-                  isMobileOpen={isMobileSidebarOpen}
-                  onCloseMobile={() => setIsMobileSidebarOpen(false)}
-                  onOpenTicketModal={() => setIsTicketOpen(true)}
-                  role={role}
-                  user={user}
-                  onLogout={handleLogout}
-                />
+            <div className="flex-1 flex w-full relative">
+              <Sidebar
+                currentView={currentView}
+                selectedCategory={selectedCategory}
+                onSelectCategory={(catId) => {
+                  setSelectedCategory(catId);
+                  setActiveDashboard(null);
+                  setCurrentView('category');
+                }}
+                onSelectHomepage={() => {
+                  setCurrentView('home');
+                  setActiveDashboard(null);
+                }}
+                isMobileOpen={isMobileSidebarOpen}
+                onCloseMobile={() => setIsMobileSidebarOpen(false)}
+                // Menuju Katalog Tiket
+                onOpenTicketModal={() => {
+                  setCurrentView('ticket-catalog');
+                  setActiveDashboard(null);
+                  setIsMobileSidebarOpen(false);
+                }}
+                role={role}
+                user={user}
+                onLogout={handleLogout}
+              />
 
-                <div className="flex-1 w-full min-w-0 flex flex-col overflow-y-auto">
-                  {currentView === 'main-news' && (
-                    <div className="relative flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-6xl mx-auto w-full font-sans pb-20">
-                      <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-                        <div className="flex items-center gap-2">
-                          <button
-                            onClick={() => setCurrentView('home')}
-                            className="md:hidden inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-[#d6cfbf] hover:bg-[#eeebe1] hover:text-[#00263f] transition shadow-xs cursor-pointer"
-                          >
-                            <ArrowLeft className="w-4 h-4" />
-                            <span>Kembali</span>
-                          </button>
-                        </div>
-                      </div>
+              <div className="flex-1 w-full min-w-0 flex flex-col overflow-y-auto">
+                {currentView === 'home' && (
+                  <HomeView
+                    mainNews={mainNews}
+                    subcategories={subcategories}
+                    onSelectMainNews={() => {
+                      setTargetPdfSlide(1);
+                      setCurrentView('main-news');
+                    }}
+                    onSelectCategory={(catId) => {
+                      setSelectedCategory(catId);
+                      setActiveDashboard(null);
+                      setCurrentView('category');
+                    }}
+                    onOpenTicketModal={() => setCurrentView('ticket-catalog')}
+                    onOpenUpload={() => setIsUploadOpen(true)}
+                    isAdmin={role === 'admin'}
+                  />
+                )}
 
-                      <div id="main-news-viewer-wrapper" className="w-full">
-                        {!mainNews.pdfUrl && !mainNews.pdfDataUrl && !mainNews.pdfData && !mainNews.rawFile && !mainNews.fileId ? (
-                          <EmptyModuleState
-                            title={mainNews.title}
-                            categoryName="PANDUAN UTAMA"
-                            isAdmin={role === 'admin'}
-                            onUpload={() => setIsUploadOpen(true)}
-                            onBack={() => setCurrentView('home')}
-                          />
-                        ) : (
-                          <PdfViewer
-                            title={`PRESENTASI PPT: ${mainNews.title}`}
-                            subtitle={mainNews.summary}
-                            fileName={mainNews.pdfFileName || 'Panduan_Utama_2026.pdf'}
-                            pdfUrl={mainNews.pdfUrl}
-                            pdfDataUrl={mainNews.pdfDataUrl}
-                            rawFile={mainNews.rawFile}
-                            pdfData={mainNews.pdfData}
-                            fileId={mainNews.fileId}
-                            fileSize={mainNews.pdfFileSize}
-                            isAdmin={role === 'admin'}
-                            initialPage={targetPdfSlide}
-                            onReplacePdf={() => setIsUploadOpen(true)}
-                            onDeletePdf={() => handleDeletePdf(mainNews.fileId)}
-                            onBack={() => setCurrentView('home')}
-                          />
-                        )}
-                      </div>
-
-                      <div className="fixed bottom-6 right-6 z-40">
-                        <a
-                          href="https://helpdesk.kintouncoffee.id"
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-4.5 py-2.5 rounded-xl bg-[#00263f] hover:bg-[#3c586d] text-white font-black text-xs tracking-wider uppercase shadow-xl hover:shadow-2xl transition transform hover:scale-105 flex items-center gap-2 cursor-pointer border border-white/10"
+                {currentView === 'main-news' && (
+                  <div className="relative flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-6xl mx-auto w-full font-sans pb-20">
+                    <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => setCurrentView('home')}
+                          className="md:hidden inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-[#d6cfbf] hover:bg-[#eeebe1] hover:text-[#00263f] transition shadow-xs cursor-pointer"
                         >
-                          <span>Bantuan Teknisi</span>
-                          <ExternalLink className="w-4 h-4 text-slate-300" />
-                        </a>
+                          <ArrowLeft className="w-4 h-4" />
+                          <span>Kembali</span>
+                        </button>
                       </div>
                     </div>
-                  )}
 
-                  {currentView === 'category' && (
-                    <CategoryView
-                      categoryId={selectedCategory}
-                      subcategories={subcategories}
-                      specificNews={currentSpecificNews}
-                      onSelectSubcategory={(subcatId) => handleNavigateToSubcategory(selectedCategory, subcatId)}
-                      onSelectNews={() => {
-                        setTargetPdfSlide(1);
-                        setCurrentView('specific-news');
-                      }}
-                      onOpenUpload={() => setIsUploadOpen(true)}
-                      onBackToHome={() => setCurrentView('home')}
-                      onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
-                      isAdmin={role === 'admin'}
-                    />
-                  )}
+                    <div id="main-news-viewer-wrapper" className="w-full">
+                      {!mainNews.pdfUrl && !mainNews.pdfDataUrl && !mainNews.pdfData && !mainNews.rawFile && !mainNews.fileId ? (
+                        <EmptyModuleState
+                          title={mainNews.title}
+                          categoryName="PANDUAN UTAMA"
+                          isAdmin={role === 'admin'}
+                          onUpload={() => setIsUploadOpen(true)}
+                          onBack={() => setCurrentView('home')}
+                        />
+                      ) : (
+                        <PdfViewer
+                          title={`PRESENTASI PPT: ${mainNews.title}`}
+                          subtitle={mainNews.summary}
+                          fileName={mainNews.pdfFileName || 'Panduan_Utama_2026.pdf'}
+                          pdfUrl={mainNews.pdfUrl}
+                          pdfDataUrl={mainNews.pdfDataUrl}
+                          rawFile={mainNews.rawFile}
+                          pdfData={mainNews.pdfData}
+                          fileId={mainNews.fileId}
+                          fileSize={mainNews.pdfFileSize}
+                          isAdmin={role === 'admin'}
+                          initialPage={targetPdfSlide}
+                          onReplacePdf={() => setIsUploadOpen(true)}
+                          onDeletePdf={() => handleDeletePdf(mainNews.fileId)}
+                          onBack={() => setCurrentView('home')}
+                        />
+                      )}
+                    </div>
+                  </div>
+                )}
 
-                  {currentView === 'specific-news' && (
-                    <NewsDetailView
-                      article={currentSpecificNews}
-                      categoryId={selectedCategory}
-                      targetSlide={targetPdfSlide}
-                      onBack={() => setCurrentView('category')}
-                      onOpenUpload={() => setIsUploadOpen(true)}
-                      isAdmin={role === 'admin'}
-                    />
-                  )}
+                {currentView === 'category' && (
+                  <CategoryView
+                    categoryId={selectedCategory}
+                    subcategories={subcategories}
+                    specificNews={currentSpecificNews}
+                    onSelectSubcategory={(subcatId) => handleNavigateToSubcategory(selectedCategory, subcatId)}
+                    onSelectNews={() => {
+                      setTargetPdfSlide(1);
+                      setCurrentView('specific-news');
+                    }}
+                    onOpenUpload={() => setIsUploadOpen(true)}
+                    onBackToHome={() => setCurrentView('home')}
+                    onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
+                    isAdmin={role === 'admin'}
+                  />
+                )}
 
-                  {currentView === 'subcategory' && (
-                    <LearningCardsView
-                      cardData={currentSubcategory}
-                      targetSlide={targetPdfSlide}
-                      onBack={() => setCurrentView('category')}
-                      onOpenUpload={() => setIsUploadOpen(true)}
-                      onDeletePdf={(subId) => handleDeletePdf(subcategories.find(s => s.id === subId)?.fileId)}
-                      isAdmin={role === 'admin'}
-                    />
-                  )}
+                {currentView === 'specific-news' && (
+                  <NewsDetailView
+                    article={currentSpecificNews}
+                    categoryId={selectedCategory}
+                    targetSlide={targetPdfSlide}
+                    onBack={() => setCurrentView('category')}
+                    onOpenUpload={() => setIsUploadOpen(true)}
+                    isAdmin={role === 'admin'}
+                  />
+                )}
 
-                  {currentView === 'dashboard' && activeDashboard && (
-                    <DashboardView
-                      dashboardName={activeDashboard}
-                      tickets={tickets}
-                      onOpenTicketModal={() => setIsTicketOpen(true)}
-                    />
-                  )}
-                </div>
+                {currentView === 'subcategory' && (
+                  <LearningCardsView
+                    cardData={currentSubcategory}
+                    targetSlide={targetPdfSlide}
+                    onBack={() => setCurrentView('category')}
+                    onOpenUpload={() => setIsUploadOpen(true)}
+                    onDeletePdf={(subId) => handleDeletePdf(subcategories.find(s => s.id === subId)?.fileId)}
+                    isAdmin={role === 'admin'}
+                  />
+                )}
+
+                {currentView === 'dashboard' && activeDashboard && (
+                  <DashboardView
+                    dashboardName={activeDashboard}
+                    tickets={tickets}
+                    onOpenTicketModal={() => setIsTicketOpen(true)}
+                  />
+                )}
+
+                {/* HALAMAN KATALOG TIKET BARU */}
+                {currentView === 'ticket-catalog' && (
+                  <TicketCatalogView 
+                    tickets={ticketTemplates} 
+                    isAdmin={role === 'admin'} 
+                    onBack={() => setCurrentView('home')} 
+                    onUpdateTickets={(newTickets) => setTicketTemplates(newTickets)} 
+                  />
+                )}
               </div>
-            )}
+            </div>
           </main>
 
           <AdminUploadModal
@@ -575,6 +578,7 @@ export default function App() {
             onNavigateToMainNews={handleNavigateToMainNews}
             onNavigateToSpecificNews={handleNavigateToSpecificNews}
           />
+          {/* TicketModal yang lama tetap dipasang untuk input form jika nanti digunakan */}
           <TicketModal
             isOpen={isTicketOpen}
             onClose={() => setIsTicketOpen(false)}
