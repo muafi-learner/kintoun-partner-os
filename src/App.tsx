@@ -93,21 +93,25 @@ export default function App() {
   const [isHostingerGuideOpen, setIsHostingerGuideOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // SINKRONISASI KATEGORI DARI HOSTINGER
+  // SINKRONISASI KATEGORI DARI HOSTINGER (DENGAN PENGAMAN DATA KOSONG)
   const syncCategoriesFromServer = useCallback(async () => {
     try {
       const response = await fetch('https://kintouncoffee.id/partner/api/categories.json');
-      if (response.ok) {
-        const data = await response.json();
-        if (Array.isArray(data) && data.length > 0) {
-          // Jika Anda menggunakan state terpusat untuk kategori, bisa diperbarui di sini
-        }
+      const textResponse = await response.text();
+      
+      if (!textResponse || textResponse.trim() === '') {
+        return; // Lewati jika file masih kosong
+      }
+
+      const data = JSON.parse(textResponse);
+      if (Array.isArray(data) && data.length > 0) {
+        // Data kategori valid dari server
       }
     } catch (error) {
       console.error("Gagal sinkronisasi kategori dari server", error);
     }
   }, []);
-
+  
   // SINKRONISASI DATA DARI HOSTINGER
   const syncFromServer = useCallback(async () => {
     try {
