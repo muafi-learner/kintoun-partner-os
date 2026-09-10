@@ -7,7 +7,8 @@ import {
   Calendar, TrendingUp, AlertCircle, ShoppingCart, Truck, Trash2, 
   CheckSquare, DoorOpen, CreditCard, ShieldCheck, CheckCircle2, 
   PlusCircle, ExternalLink, Boxes, Sparkles, ArrowLeft, LifeBuoy, 
-  Edit3, Check, HelpCircle, Info, Monitor, Smartphone, Camera
+  Edit3, Check, HelpCircle, Info, Monitor, Smartphone, Camera,
+  Upload, ArrowRight
 } from 'lucide-react';
 import { CategoryId, SubcategoryCard, NewsArticle } from '../types';
 import { CATEGORIES } from '../data/initialData';
@@ -82,7 +83,7 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
       title: '',
       description: '',
       iconName: 'book-open',
-      hasDetail: false // Required default property
+      hasDetail: false
     });
   };
 
@@ -207,12 +208,21 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
           {visibleSubcategories.map((subcat) => {
             const SubcatIcon = getIconComponent(subcat.iconName);
+            
+            // LOGIKA PENGECEKAN MATERI KOSONG
+            const isContentEmpty = !subcat.isUploaded && !subcat.pdfUrl;
 
             return (
               <div 
                 key={subcat.id} 
-                onClick={() => onSelectSubcategory(subcat.id)} 
-                className="group relative bg-white hover:bg-[#fdfcfb] rounded-2xl p-5 sm:p-6 border border-[#e2dfd5] hover:border-[#b8ad98] shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col min-h-[140px]"
+                onClick={() => {
+                  if (isContentEmpty && isAdmin) {
+                    onOpenUpload();
+                  } else if (!isContentEmpty) {
+                    onSelectSubcategory(subcat.id);
+                  }
+                }} 
+                className="group relative bg-white hover:bg-[#fdfcfb] rounded-2xl p-5 sm:p-6 border border-[#e2dfd5] hover:border-[#b8ad98] shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col min-h-[150px]"
               >
                 {isAdmin && (
                   <button
@@ -237,7 +247,26 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
                     <h4 className="text-xs sm:text-sm font-black text-slate-900 uppercase truncate group-hover:text-[#00263f] transition">{subcat.title}</h4>
                   </div>
                 </div>
-                <p className="text-xs text-slate-600 font-medium leading-relaxed line-clamp-3">{subcat.description}</p>
+                <p className="text-xs text-slate-600 font-medium leading-relaxed line-clamp-3 mb-4">{subcat.description}</p>
+                
+                {/* //code: LOGIKA TAMPILAN BUTTON (Pojok Kanan Bawah & Warna Flat Abu-abu) */}
+                <div className="mt-auto pt-2 flex justify-end">
+                  {!isContentEmpty ? (
+                    <button className="px-4 py-2 rounded-l text-xs font-black text-white bg-[#00263f] hover:bg-[#3c586d] transition flex items-center gap-1.5 shadow-xs cursor-pointer">
+                      <span>Pelajari</span>
+                      <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  ) : isAdmin ? (
+                    <button className="px-4 py-2 rounded-xl text-xs font-bold text-slate-750 bg-amber-300 hover:bg-slate-200 transition flex items-center gap-1.5 cursor-pointer">
+                      <Upload className="w-3.5 h-3.5" />
+                      <span>Isi Materi</span>
+                    </button>
+                  ) : (
+                    <button className="px-4 py-2 rounded-l text-xs font-bold text-slate-500 bg-slate-50 transition flex items-center gap-1.5 cursor-not-allowed">
+                      <span>Belum Diisi</span>
+                    </button>
+                  )}
+                </div>
               </div>
             );
           })}
