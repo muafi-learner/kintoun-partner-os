@@ -22,6 +22,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
   subcategories,
   onSelectMainNews,
   onSelectCategory,
+  onOpenTicketModal, // -> TAMBAHKAN INI
+  onOpenUpload,      // -> TAMBAHKAN INI JUGA AGAR TOMBOL UPLOAD ADMIN TIDAK ERROR
   isAdmin,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
