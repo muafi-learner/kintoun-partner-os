@@ -3,7 +3,6 @@ import { ChevronRight, ArrowLeft, ExternalLink } from 'lucide-react';
 import { SubcategoryCard } from '../types';
 import { PdfViewer } from './PdfViewer';
 import { EmptyModuleState } from './EmptyModuleState';
-import { isSubcategoryUploaded } from '../utils/uploadStatus';
 
 const formatTitleCase = (text: string) => {
   if (!text) return '';
@@ -31,12 +30,13 @@ export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
   isAdmin,
   targetSlide = 1
 }) => {
-  const isUploaded = isSubcategoryUploaded(cardData);
+  // //code: Validasi ketat murni berdasarkan ada tidaknya URL atau ID file fisik
+  const isUploaded = Boolean(cardData.pdfUrl || cardData.pdfDataUrl || cardData.fileId || cardData.isUploaded);
   const slideDeck = cardData.slideDeck && cardData.slideDeck.length > 0 ? cardData.slideDeck : undefined;
 
   return (
     <div className="relative flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-6xl mx-auto w-full font-sans pb-20">
-      {/* Top Breadcrumb Row (Tanpa tombol oranye yang sesak) */}
+      {/* Top Breadcrumb Row */}
       <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
         <div className="flex items-center gap-2">
           <button
@@ -72,7 +72,7 @@ export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
         </div>
       </div>
 
-      {/* Main Content Viewer */}
+      {/* Main Content Viewer / Empty Dropzone */}
       <div id="ppt-viewer-wrapper" className="w-full">
         {!isUploaded ? (
           <EmptyModuleState
@@ -103,7 +103,7 @@ export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
         )}
       </div>
 
-      {/* TOMBOL BANTUAN TEKNISI FLOATING OVERLAPPING DI POJOK KANAN BAWAH */}
+      {/* TOMBOL BANTUAN TEKNISI FLOATING */}
       <div className="fixed bottom-6 right-6 z-40">
         <a
           href="https://helpdesk.kintouncoffee.id"
