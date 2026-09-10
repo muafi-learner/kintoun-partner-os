@@ -47,7 +47,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [categoriesList, setCategoriesList] = useState<CategoryConfig[]>(CATEGORIES);
   const [editingCategory, setEditingCategory] = useState<CategoryConfig | null>(null);
    
-  // State untuk Edit/Add Tiket langsung di Homepage
   const [editingTicket, setEditingTicket] = useState<TicketTemplate | null>(null);
   const [isAddingNewTicket, setIsAddingNewTicket] = useState(false);
   const [showIconPicker, setShowIconPicker] = useState(false);
@@ -95,7 +94,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
     }
   };
 
-  // Fungsi simpan tiket (Add/Edit)
   const handleSaveTicket = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingTicket) return;
@@ -132,10 +130,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
     }
   };
 
-  // Fungsi hapus tiket
   const handleDeleteTicket = async () => {
     if (!editingTicket) return;
-    const confirmDelete = window.confirm(`Hapus template tiket "${editingTicket.title}"?`);
+    const confirmDelete = window.confirm(`Hapus form tiket "${editingTicket.title}"?`);
     if (!confirmDelete) return;
 
     setIsSaving(true);
@@ -167,13 +164,15 @@ export const HomeView: React.FC<HomeViewProps> = ({
     setShowIconPicker(false);
     setEditingTicket({
       id: `tkt_${Date.now()}`,
-      department: 'DEPARTEMEN',
       title: '',
       description: '',
-      sla: '1x24 Jam',
       iconName: 'file-text',
-      badgeColor: 'bg-blue-100 text-blue-700 border-blue-200'
-    });
+      // Mengisi default field lama agar tidak error tipe data
+      department: '',
+      sla: '',
+      badgeColor: '',
+      url: '' 
+    } as any);
   };
 
   const renderCategoryIcon = (iconName: string) => {
@@ -204,8 +203,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
   return (
     <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-30 font-sans min-h-full flex flex-col justify-between">
       <div>
-        {/* HERO SECTION */}
-        {/* //code: Ubah nilai mb-12 di bawah ini untuk mengatur jarak kuning */}
         <section className="mb-32 px-2 max-w-3xl">
           <h1 className="font-poppins text-4xl sm:text-6xl lg:text-7xl text-[#00263f] leading-[1.1] mb-6">
             <span className="font-medium">Welcome to</span><br />
@@ -216,9 +213,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </p>
         </section>
 
-        {/* RECENT UPDATE */}
         <section className="mb-10 sm:mb-14">
-          {/* //code: Ubah nilai mb-3 di bawah ini untuk mengatur jarak merah */}
           <div className="flex items-center gap-2 mb-3 px-1">
             <span className="w-2 h-2 rounded-full bg-amber-500"></span>
             <h3 className="text-xs font-black uppercase tracking-wider text-slate-500">
@@ -247,7 +242,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
         </section>
 
-        {/* SEARCH & CATEGORY GRID */}
         <section className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 px-1">
           <p className="hidden md:block text-xs sm:text-sm text-slate-600 font-semibold">
             Pilih topik di bawah atau ketik kata kunci kendala untuk menemukan solusi
@@ -343,51 +337,52 @@ export const HomeView: React.FC<HomeViewProps> = ({
           })}
         </section>
 
-        {/* BAGIAN BARU: KATALOG TIKET & ESKALASI DI HOMEPAGE */}
+        {/* KATALOG TIKET & ESKALASI (LINK EKSTERNAL) */}
         <section className="mb-16 pt-8 border-t border-[#d6cfbf]/60">
           <div className="mb-6 px-1">
             <h2 className="text-2xl sm:text-3xl font-black text-[#00263f] uppercase tracking-tight mb-1">
-              KATALOG TIKET & ESKALASI
+              KATALOG TIKET & FORM
             </h2>
             <p className="text-xs sm:text-sm text-slate-600 font-medium">
-              Pilih kategori tiket di bawah ini untuk mengajukan permintaan ke Head Office.
+              Pilih akses form di bawah ini untuk mengajukan permintaan atau laporan operasional.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {tickets.map((ticket) => {
               const TicketIcon = getIconComponent(ticket.iconName);
+              // //code: Ekstraksi URL (Tautan Tally/GForm) dengan tipe as any agar tidak error di Typescript
+              const ticketUrl = (ticket as any).url || '#';
+
               return (
-                <div key={ticket.id} className="group relative bg-white hover:bg-slate-50 border border-[#d6cfbf] rounded-2xl p-5 shadow-xs flex flex-col justify-between min-h-[220px]">
+                <div key={ticket.id} className="group relative bg-white hover:bg-slate-50 border border-[#d6cfbf] rounded-2xl p-5 shadow-xs flex flex-col justify-between min-h-[170px]">
                   {isAdmin && (
                     <button 
                       onClick={() => { setIsAddingNewTicket(false); setEditingTicket(ticket); }} 
                       className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-100 hover:bg-amber-400 text-slate-600 hover:text-slate-950 transition z-10 cursor-pointer"
-                      title="Edit Tiket Ini"
+                      title="Edit Link Form Ini"
                     >
                       <Edit3 className="w-3.5 h-3.5" />
                     </button>
                   )}
                   <div>
-                    <div className="mb-4 pr-8">
-                      <span className={`inline-flex items-center px-2 py-1 rounded text-[10px] font-black uppercase border ${ticket.badgeColor}`}>{ticket.department}</span>
-                    </div>
-                    <div className="flex gap-3 mb-2">
-                      <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
-                        <TicketIcon className="w-4 h-4" />
+                    <div className="flex gap-3 mb-3 pr-8">
+                      <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0">
+                        <TicketIcon className="w-5 h-5" />
                       </div>
                       <h3 className="text-sm font-black text-slate-900 uppercase leading-snug">{ticket.title}</h3>
                     </div>
                     <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">{ticket.description}</p>
                   </div>
-                  <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-slate-500">
-                      <Clock className="w-3.5 h-3.5" />
-                      <span className="text-[11px] font-bold">SLA: {ticket.sla}</span>
-                    </div>
-                    <button className="px-4 py-2 rounded-xl bg-[#00263f] text-white text-xs font-black flex items-center gap-1.5 hover:bg-[#3c586d] transition shadow-2xs cursor-pointer">
-                      Buat Tiket <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
+                  <div className="pt-4 mt-4 border-t border-slate-100 flex justify-end">
+                    <a 
+                      href={ticketUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 rounded-xl bg-[#00263f] text-white text-xs font-black flex items-center gap-1.5 hover:bg-[#3c586d] transition shadow-2xs cursor-pointer"
+                    >
+                      Buat Tiket <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
                   </div>
                 </div>
               );
@@ -396,20 +391,20 @@ export const HomeView: React.FC<HomeViewProps> = ({
             {isAdmin && (
               <div 
                 onClick={handleOpenAddNewTicket} 
-                className="border-2 border-dashed border-amber-300 bg-amber-50/40 hover:bg-amber-50 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer min-h-[220px] transition"
+                className="border-2 border-dashed border-amber-300 bg-amber-50/40 hover:bg-amber-50 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer min-h-[170px] transition"
               >
                 <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mb-2.5 shadow-2xs">
                   <PlusCircle className="w-5 h-5" />
                 </div>
-                <h4 className="text-xs font-black text-amber-900 uppercase">TAMBAH FORM TIKET</h4>
-                <p className="text-[11px] text-amber-700 mt-1">Buat template tiket eskalasi baru</p>
+                <h4 className="text-xs font-black text-amber-900 uppercase">TAMBAH LINK FORM</h4>
+                <p className="text-[11px] text-amber-700 mt-1">Tambahkan tautan formulir eksternal baru</p>
               </div>
             )}
           </div>
         </section>
       </div>
 
-      {/* MODAL EDIT / TAMBAH KATEGORI */}
+      {/* MODAL EDIT KATEGORI TETAP SAMA */}
       {editingCategory && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl animate-in fade-in duration-200">
@@ -478,12 +473,12 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
       )}
 
-      {/* MODAL EDIT / TAMBAH TIKET */}
+      {/* MODAL EDIT / TAMBAH TIKET (DISEDERHANAKAN UNTUK LINK EKSTERNAL) */}
       {editingTicket && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl">
             <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
-              <h3 className="text-base font-black text-[#00263f] uppercase">{isAddingNewTicket ? 'Tambah Tiket Baru' : 'Edit Tiket'}</h3>
+              <h3 className="text-base font-black text-[#00263f] uppercase">{isAddingNewTicket ? 'Tambah Form Tiket' : 'Edit Link Form'}</h3>
               <button onClick={() => setEditingTicket(null)} className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
                 <X className="w-5 h-5" />
               </button>
@@ -491,51 +486,69 @@ export const HomeView: React.FC<HomeViewProps> = ({
              
             <form onSubmit={handleSaveTicket} className="space-y-4">
               <div>
-                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Departemen (Label)</label>
-                <input type="text" value={editingTicket.department} onChange={(e) => setEditingTicket({ ...editingTicket, department: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-[#00263f]" required />
+                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Judul Form / Tiket</label>
+                <input 
+                  type="text" 
+                  value={editingTicket.title} 
+                  onChange={(e) => setEditingTicket({ ...editingTicket, title: e.target.value })} 
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-[#00263f]" 
+                  required 
+                />
               </div>
+              
               <div>
-                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Judul Tiket</label>
-                <input type="text" value={editingTicket.title} onChange={(e) => setEditingTicket({ ...editingTicket, title: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-[#00263f]" required />
+                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Deskripsi Singkat</label>
+                <textarea 
+                  value={editingTicket.description} 
+                  onChange={(e) => setEditingTicket({ ...editingTicket, description: e.target.value })} 
+                  rows={2} 
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-[#00263f] resize-none" 
+                  required 
+                />
               </div>
+              
               <div>
-                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Deskripsi & Instruksi</label>
-                <textarea value={editingTicket.description} onChange={(e) => setEditingTicket({ ...editingTicket, description: e.target.value })} rows={2} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-[#00263f] resize-none" required />
+                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Tautan Link Tiket (URL Eksternal)</label>
+                <input 
+                  type="url" 
+                  placeholder="Contoh: https://tally.so/r/..." 
+                  value={(editingTicket as any).url || ''} 
+                  onChange={(e) => setEditingTicket({ ...editingTicket, url: e.target.value } as any)} 
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-[#00263f]" 
+                  required 
+                />
               </div>
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">SLA (Target Waktu)</label>
-                  <input type="text" value={editingTicket.sla} onChange={(e) => setEditingTicket({ ...editingTicket, sla: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-[#00263f]" required />
-                </div>
-                <div className="flex-1">
-                  <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Warna Label</label>
-                  <select value={editingTicket.badgeColor} onChange={(e) => setEditingTicket({ ...editingTicket, badgeColor: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold">
-                    <option value="bg-blue-100 text-blue-700 border-blue-200">Biru (Maintenance)</option>
-                    <option value="bg-rose-100 text-rose-700 border-rose-200">Merah (Kritikal/HC)</option>
-                    <option value="bg-emerald-100 text-emerald-700 border-emerald-200">Hijau (Operasional)</option>
-                  </select>
-                </div>
-              </div>
+
               <div>
-                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-2">Ikon</label>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-2">Pilih Ikon</label>
                 <div className="flex gap-2">
                   {AVAILABLE_ICONS.map(icon => {
                     const IconComp = getIconComponent(icon);
                     return (
-                      <button key={icon} type="button" onClick={() => setEditingTicket({ ...editingTicket, iconName: icon })} className={`p-2 rounded-lg border flex items-center justify-center ${editingTicket.iconName === icon ? 'bg-[#00263f] text-white' : 'bg-slate-50 text-slate-400'}`}>
+                      <button 
+                        key={icon} 
+                        type="button" 
+                        onClick={() => setEditingTicket({ ...editingTicket, iconName: icon })} 
+                        className={`p-2 rounded-lg border flex items-center justify-center transition cursor-pointer ${editingTicket.iconName === icon ? 'bg-[#00263f] text-white border-[#00263f]' : 'bg-slate-50 text-slate-400 border-slate-200 hover:bg-slate-100 hover:text-slate-700'}`}
+                      >
                         <IconComp className="w-4 h-4" />
                       </button>
                     )
                   })}
                 </div>
               </div>
+
               <div className="flex items-center justify-between pt-4 mt-2 border-t border-slate-100">
                 {!isAddingNewTicket ? (
-                  <button type="button" onClick={handleDeleteTicket} className="px-4 py-2 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 flex items-center gap-1.5 cursor-pointer"><Trash2 className="w-4 h-4"/> Hapus</button>
+                  <button type="button" onClick={handleDeleteTicket} className="px-4 py-2 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 hover:bg-rose-100 flex items-center gap-1.5 cursor-pointer transition">
+                    <Trash2 className="w-4 h-4"/> Hapus
+                  </button>
                 ) : <div></div>}
                 <div className="flex gap-2">
-                  <button type="button" onClick={() => setEditingTicket(null)} className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 cursor-pointer">Batal</button>
-                  <button type="submit" disabled={isSaving} className="px-5 py-2 rounded-xl text-xs font-black bg-[#00263f] text-white flex items-center gap-1.5 cursor-pointer"><Check className="w-4 h-4"/> Simpan</button>
+                  <button type="button" onClick={() => setEditingTicket(null)} className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 cursor-pointer transition">Batal</button>
+                  <button type="submit" disabled={isSaving} className="px-5 py-2 rounded-xl text-xs font-black bg-[#00263f] hover:bg-[#3c586d] text-white flex items-center gap-1.5 cursor-pointer transition disabled:opacity-50">
+                    <Check className="w-4 h-4"/> Simpan
+                  </button>
                 </div>
               </div>
             </form>
