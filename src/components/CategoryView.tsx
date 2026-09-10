@@ -5,7 +5,7 @@ import {
   MessageSquareWarning, HeartHandshake, Smile, PhoneCall, ClipboardEdit, 
   AlertOctagon, Utensils, Hammer, Settings, Droplets, Cpu, Clock, 
   Calendar, TrendingUp, AlertCircle, ShoppingCart, Truck, Trash2, 
-  CheckSquare, DoorOpen, CreditCard, ShieldCheck, CheckCircle2, PlusCircle, ExternalLink, Boxes, Sparkles, ArrowLeft, LifeBuoy 
+  CheckSquare, DoorOpen, CreditCard, ShieldCheck, CheckCircle2, PlusCircle, ExternalLink, Boxes, Sparkles, ArrowLeft, LifeBuoy, Edit3, Check
 } from 'lucide-react';
 import { CategoryId, SubcategoryCard, NewsArticle } from '../types';
 import { CATEGORIES } from '../data/initialData';
@@ -47,18 +47,57 @@ interface CategoryViewProps {
 }
 
 export const CategoryView: React.FC<CategoryViewProps> = ({
-  categoryId, subcategories, onSelectSubcategory, onOpenUpload, onBackToHome, isAdmin, onOpenMobileSidebar
+  categoryId, subcategories: initialSubcategories, onSelectSubcategory, onOpenUpload, onBackToHome, isAdmin, onOpenMobileSidebar
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  
+  const [subcategoriesList, setSubcategoriesList] = useState<SubcategoryCard[]>(initialSubcategories);
+  const [editingSubcat, setEditingSubcat] = useState<SubcategoryCard | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Sinkronisasi data saat props berubah
+  React.useEffect(() => {
+    setSubcategoriesList(initialSubcategories);
+  }, [initialSubcategories]);
+
   const currentCategory = useMemo(() => CATEGORIES.find((c) => c.id === categoryId) || CATEGORIES[0], [categoryId]);
   
   const visibleSubcategories = useMemo(() => {
-    const filtered = subcategories.filter((s) => s.categoryId === categoryId);
+    const filtered = subcategoriesList.filter((s) => s.categoryId === categoryId);
     if (!searchQuery.trim()) return filtered;
     const q = searchQuery.toLowerCase();
     return filtered.filter((s) => s.title.toLowerCase().includes(q) || s.description.toLowerCase().includes(q));
-  }, [subcategories, categoryId, searchQuery]);
+  }, [subcategoriesList, categoryId, searchQuery]);
+
+  const handleSaveSubcatEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSubcat) return;
+
+    setIsSaving(true);
+    try {
+      const updatedList = subcategoriesList.map(sub => 
+        sub.id === editingSubcat.id ? editingSubcat : sub
+      );
+
+      const response = await fetch('https://kintouncoffee.id/partner/api/update-subcategories.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subcategories: updatedList })
+      });
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        setSubcategoriesList(updatedList);
+        setEditingSubcat(null);
+      } else {
+        alert(result.message || 'Gagal menyimpan perubahan.');
+      }
+    } catch (error) {
+      console.error("Gagal terhubung ke server", error);
+      alert('Koneksi ke server terputus.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const CategoryIcon = getIconComponent(currentCategory.iconName);
 
@@ -75,8 +114,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
               <span>Kembali</span>
             </button>
           </div>
-
-          {/* Tombol oranye "Input PDF..." di atas SUDAH DIHAPUS dari sini */}
         </div>
 
         <div className="bg-white rounded-2xl border border-[#d6cfbf] p-4 sm:p-5 mb-6 shadow-xs flex items-center justify-between gap-4">
@@ -121,10 +158,24 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
               <div 
                 key={subcat.id} 
                 onClick={() => onSelectSubcategory(subcat.id)} 
-                className="group bg-white hover:bg-[#fdfcfb] rounded-2xl p-5 sm:p-6 border border-[#d6cfbf] hover:border-[#b8ad98] shadow-xs hover:shadow-lg transition-all cursor-pointer flex flex-col justify-between min-h-[220px]"
+                className="group relative bg-white hover:bg-[#fdfcfb] rounded-2xl p-5 sm:p-6 border border-[#d6cfbf] hover:border-[#b8ad98] shadow-xs hover:shadow-lg transition-all cursor-pointer flex flex-col justify-between min-h-[220px]"
               >
+                {/* TOMBOL EDIT KARTU SUB-TOPIK KHUSUS ADMIN */}
+                {isAdmin && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingSubcat(subcat);
+                    }}
+                    className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-100 hover:bg-amber-400 text-slate-600 hover:text-slate-950 transition shadow-xs z-10 cursor-pointer"
+                    title="Edit Kartu Sub-Topik Ini"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                  </button>
+                )}
+
                 <div>
-                  <div className="flex items-start gap-3 mb-3">
+                  <div className="flex items-start gap-3 mb-3 pr-6">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 shadow-2xs" style={{ backgroundColor: subcat.iconBgColor || currentCategory.colorHex }}>
                       <SubcatIcon className="w-5 h-5 text-white shrink-0" />
                     </div>
@@ -162,6 +213,65 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
           )}
         </div>
       </div>
+
+      {/* MODAL EDIT KARTU SUB-TOPIK */}
+      {editingSubcat && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl animate-in fade-in duration-200">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+              <h3 className="text-base font-black text-[#00263f] uppercase">Edit Sub-Topik</h3>
+              <button onClick={() => setEditingSubcat(null)} className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveSubcatEdit} className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Judul Sub-Topik (Title)</label>
+                <input
+                  type="text"
+                  value={editingSubcat.title}
+                  onChange={(e) => setEditingSubcat({ ...editingSubcat, title: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#00263f]"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Deskripsi Singkat</label>
+                <textarea
+                  value={editingSubcat.description}
+                  onChange={(e) => setEditingSubcat({ ...editingSubcat, description: e.target.value })}
+                  rows={3}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#00263f] resize-none"
+                  required
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditingSubcat(null)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="px-5 py-2 rounded-xl text-xs font-black bg-[#00263f] hover:bg-[#3c586d] text-white transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {isSaving ? 'Menyimpan...' : (
+                    <>
+                      <Check className="w-4 h-4" /> Simpan Perubahan
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* SECTION BANTUAN TEKNISI STATIS DI TENGAH BAWAH */}
       <section className="mt-8 mb-12 sm:mb-16 w-full max-w-2xl mx-auto text-center bg-white rounded-3xl border border-[#d6cfbf] p-6 sm:p-10 shadow-sm">
