@@ -98,6 +98,13 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
       const formData = new FormData();
       formData.append('file', file);
       formData.append('title', title.trim());
+      formData.append('targetType', targetType);
+      if (targetType !== 'main-news') {
+        formData.append('categoryId', selectedCategory);
+      }
+      if (targetType === 'subcategory') {
+        formData.append('subcategoryId', selectedSubcategory);
+      }
 
       // 2. Tembak langsung ke API Hostinger Anda
       const response = await fetch('https://kintouncoffee.id/partner/api/upload.php', {
