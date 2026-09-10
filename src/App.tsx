@@ -35,7 +35,6 @@ import { PdfViewer } from './components/PdfViewer';
 import { EmptyModuleState } from './components/EmptyModuleState';
 import { STORAGE_KEYS } from './services/storage';
 
-// UPDATE: Parameter extractedText ditambahkan dan disusupkan ke dalam slide.note
 const generateSlideDeck = (title: string, fileName: string, fileSize: string, date: string, extractedText: string = ''): PdfSlide[] => [
   {
     slideNumber: 1,
@@ -47,7 +46,6 @@ const generateSlideDeck = (title: string, fileName: string, fileSize: string, da
       'Format Berkas: PPT / PDF Standar Operasional Kintoun',
       `Diupload pada: ${date}`
     ],
-    // Teks hasil ekstraksi PDF disimpan di sini agar terindeks oleh mesin pencari
     note: extractedText || 'Materi presentasi terbaru dari Tim Operasional Head Office.',
     bgColor: 'bg-[#00263f] text-white'
   }
@@ -95,22 +93,37 @@ export default function App() {
   const [isHostingerGuideOpen, setIsHostingerGuideOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
+  // SINKRONISASI DATA DARI HOSTINGER
   const syncFromServer = useCallback(async () => {
     try {
       const response = await fetch('https://kintouncoffee.id/partner/api/upload.php');
       const items = await response.json();
       
-      if (!Array.isArray(items) || items.length === 0) return;
+      if (!Array.isArray(items)) return;
+
+      // Jika database kosong di server, kembalikan ke status awal (bersih)
+      if (items.length === 0) {
+        setMainNews(INITIAL_MAIN_NEWS);
+        setSpecificNews(INITIAL_SPECIFIC_NEWS);
+        setSubcategories(INITIAL_SUBCATEGORIES);
+        return;
+      }
 
       let newMainNews = { ...INITIAL_MAIN_NEWS };
       let newSpecificNews = { ...INITIAL_SPECIFIC_NEWS };
-      let newSubcategories = [...INITIAL_SUBCATEGORIES];
+      let newSubcategories = INITIAL_SUBCATEGORIES.map(sub => ({
+        ...sub,
+        isUploaded: false,
+        pdfUrl: undefined,
+        pdfFileName: undefined,
+        fileId: undefined,
+        slideDeck: undefined
+      }));
 
       const reversedItems = [...items].reverse();
 
       reversedItems.forEach(payload => {
         const uploadDate = new Date(payload.uploadedAt).toLocaleDateString('id-ID');
-        // UPDATE: Payload.extractedText disalurkan ke fungsi pembuat slide
         const slideDeck = generateSlideDeck(payload.title, payload.fileName, 'N/A', uploadDate, payload.extractedText);
 
         if (payload.targetType === 'main-news') {
@@ -119,6 +132,7 @@ export default function App() {
             title: payload.title,
             pdfUrl: payload.pdfUrl,
             pdfFileName: payload.fileName,
+            fileId: payload.id,
             slideDeck: slideDeck,
             uploadedBy: 'Administrator Pusat',
             updatedAt: uploadDate
@@ -130,6 +144,7 @@ export default function App() {
             title: payload.title,
             pdfUrl: payload.pdfUrl,
             pdfFileName: payload.fileName,
+            fileId: payload.id,
             slideDeck: slideDeck,
             uploadedBy: 'Administrator Pusat',
             updatedAt: uploadDate
@@ -142,6 +157,7 @@ export default function App() {
               title: payload.title,
               pdfUrl: payload.pdfUrl,
               pdfFileName: payload.fileName,
+              fileId: payload.id,
               slideDeck: slideDeck,
               isUploaded: true,
               uploadedAt: uploadDate
@@ -229,6 +245,33 @@ export default function App() {
         }
       };
       setNotifications(prev => [newNotif, ...prev]);
+    }
+  };
+
+  // FUNGSI HAPUS DOKUMEN (DELETE API)
+  const handleDeletePdf = async (subcategoryId: string) => {
+    try {
+      const targetSub = subcategories.find(s => s.id === subcategoryId);
+      if (!targetSub || !targetSub.fileId) {
+        alert('ID dokumen tidak ditemukan.');
+        return;
+      }
+
+      const response = await fetch('https://kintouncoffee.id/partner/api/delete.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: targetSub.fileId })
+      });
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        syncFromServer(); // Langsung perbarui state lintas perangkat
+      } else {
+        alert(result.message || 'Gagal menghapus dokumen.');
+      }
+    } catch (err) {
+      console.error("Gagal menghapus dokumen ke server", err);
+      alert('Koneksi ke server terputus.');
     }
   };
 
@@ -464,6 +507,7 @@ export default function App() {
                       targetSlide={targetPdfSlide}
                       onBack={() => setCurrentView('category')}
                       onOpenUpload={() => setIsUploadOpen(true)}
+                      onDeletePdf={handleDeletePdf}
                       isAdmin={role === 'admin'}
                     />
                   )}
