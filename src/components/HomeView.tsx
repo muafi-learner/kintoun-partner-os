@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { 
   ArrowRight, ChevronRight, ExternalLink, 
   Search, Users, Coffee, Wrench, UserCheck, PackageCheck, Store, 
-  X, Layers, LifeBuoy, Edit3, Save, Check
+  X, Layers, LifeBuoy, Edit3, Check
 } from 'lucide-react';
 import { CategoryId, NewsArticle, CategoryConfig } from '../types';
 import { CATEGORIES } from '../data/initialData';
@@ -29,9 +29,9 @@ export const HomeView: React.FC<HomeViewProps> = ({
   const [editingCategory, setEditingCategory] = useState<CategoryConfig | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
-  // Ambil data kategori terbaru dari server saat pertama kali dimuat
+  // Ambil data kategori terbaru dari server saat pertama kali dimuat DENGAN ANTI-CACHE
   React.useEffect(() => {
-    fetch('https://kintouncoffee.id/partner/api/get-categories.php')
+    fetch(`https://kintouncoffee.id/partner/api/get-categories.php?t=${Date.now()}`)
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
