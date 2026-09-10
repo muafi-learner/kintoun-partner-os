@@ -280,7 +280,7 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
       ref={containerRef}
       id="visual-pdf-viewer-container"
       className={`w-full flex flex-col overflow-hidden select-none transition-all ${
-        isFullscreen ? 'bg-slate-950 rounded-none border-none' : 'bg-[#f6f4ee] rounded-2xl border border-[#d6cfbf] shadow-sm'
+        isFullscreen ? 'bg-slate-950 rounded-none border-none' : 'bg-[#f6f4ee] rounded-2xl border border-[#d6cfbf] shadow-sm relative'
       }`}
     >
       {/* Top Toolbar */}
@@ -294,9 +294,7 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
           </h4>
         </div>
 
-        {/* Right: Icon-based Controls (Urutan: Zoom, Fullscreen, Download, Upload, Hapus) */}
         <div className="flex items-center gap-1.5">
-          {/* 1. Zoom Controls */}
           <div className="flex items-center bg-slate-800/80 rounded-lg p-0.5 border border-slate-700/50">
             <button onClick={() => setScale((prev) => Math.max(prev - 0.15, 0.6))} className="p-1.5 hover:bg-slate-700 rounded text-slate-300 hover:text-white transition cursor-pointer" title="Perkecil Slide">
               <ZoomOut className="w-3.5 h-3.5" />
@@ -307,26 +305,22 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
             </button>
           </div>
 
-          {/* 2. Fullscreen Toggle */}
           <button onClick={toggleFullscreen} className="p-2 bg-slate-800/80 hover:bg-slate-700 rounded-lg text-slate-300 hover:text-white transition cursor-pointer border border-slate-700/50" title="Layar Penuh">
             {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
           </button>
 
-          {/* 3. Download Button */}
           {isAdmin && pdfUrl && (
             <a href={pdfUrl} download={fileName} className="p-2 bg-slate-800/80 hover:bg-slate-700 rounded-lg text-slate-300 hover:text-white transition border border-slate-700/50 cursor-pointer" title="Unduh Berkas Asli">
               <Download className="w-3.5 h-3.5" />
             </a>
           )}
 
-          {/* 4. Upload / Replace Button (Icon Only, Admin Only) */}
           {isAdmin && onReplacePdf && (
             <button onClick={onReplacePdf} className="p-2 bg-slate-800/80 hover:bg-slate-700 rounded-lg text-amber-400 hover:text-amber-300 transition border border-slate-700/50 cursor-pointer" title="Ganti File PPT/PDF">
               <Upload className="w-3.5 h-3.5" />
             </button>
           )}
 
-          {/* 5. Delete / Trash Icon Button (Admin Only) */}
           {isAdmin && onDeletePdf && (
             <button 
               onClick={handleDeleteClick} 
@@ -340,9 +334,9 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
         </div>
       </div>
 
-      {/* Main Canvas Display Area */}
-      <div className={`flex-1 p-4 sm:p-6 flex items-center justify-center overflow-auto ${
-        isFullscreen ? 'bg-slate-950 h-screen' : 'bg-[#e7e3d8]/50 min-h-[420px] max-h-[720px]'
+      {/* Main Canvas Display Area - DIKUNCI DIMENSINYA AGAR TIDAK MELOMPAT */}
+      <div className={`relative w-full p-4 sm:p-6 flex items-center justify-center overflow-hidden transition-all ${
+        isFullscreen ? 'bg-slate-950 flex-1' : 'bg-[#e7e3d8]/50 h-[55vh] sm:h-[65vh] min-h-[420px]'
       }`}>
         {isLoading && (
           <div className="flex flex-col items-center justify-center p-12 text-center text-slate-600">
@@ -360,9 +354,10 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
           </div>
         )}
         
-        <div className={`flex justify-center items-center ${isLoading || errorMessage ? 'hidden' : 'block'}`}>
-          <div className="bg-white rounded-xl shadow-xl overflow-hidden border border-slate-300/80">
-            <canvas ref={canvasRef} className="block max-w-full h-auto cursor-default" />
+        {/* Pembungkus Canvas dikunci w-full h-full dan object-contain */}
+        <div className={`w-full h-full flex justify-center items-center ${isLoading || errorMessage ? 'hidden' : 'flex'}`}>
+          <div className="bg-white rounded-xl shadow-xl overflow-hidden border border-slate-300/80 flex items-center justify-center max-w-full max-h-full">
+            <canvas ref={canvasRef} className="block max-w-full max-h-full object-contain cursor-default" />
           </div>
         </div>
       </div>
