@@ -14,6 +14,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
 
   if (!isOpen) return null;
 
@@ -21,35 +22,53 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
     e.preventDefault();
     setError('');
 
+    // Validasi input kosong
+    if (!username.trim() || !password.trim()) {
+      setError('Username dan Password wajib diisi.');
+      return;
+    }
+
+    let authenticatedUser: UserProfile | null = null;
+
     // Logic Autentikasi Head Office
     if (username === 'headofficeadmin' && password === 'headofficeadmin') {
-      onLogin({
+      authenticatedUser = {
         id: 'adm_01',
         name: 'Head Office Administrator',
         role: 'admin',
         storeName: 'HQ & Operational Central Kintoun',
         email: 'admin.ops@kintoun.id'
-      });
-      onClose();
-      setUsername('');
-      setPassword('');
+      };
       
     // Logic Autentikasi Store User
     } else if (username === 'malanggalunggung' && password === 'malanggalunggung') {
-      onLogin({
+      authenticatedUser = {
         id: 'usr_02',
         name: 'Store Leader',
         role: 'user',
         storeName: 'Store Malang Galunggung',
         email: 'store.malang@kintoun.id'
-      });
-      onClose();
-      setUsername('');
-      setPassword('');
+      };
       
     // Gagal Login
     } else {
       setError('Username atau Password tidak valid!');
+      return;
+    }
+
+    // Jika berhasil login, simpan sesi dan tutup modal
+    if (authenticatedUser) {
+      if (rememberMe) {
+        localStorage.setItem('kintoun_session', JSON.stringify(authenticatedUser));
+      } else {
+        sessionStorage.setItem('kintoun_session', JSON.stringify(authenticatedUser));
+      }
+      
+      onLogin(authenticatedUser);
+      onClose();
+      setUsername('');
+      setPassword('');
+      setRememberMe(false);
     }
   };
 
@@ -87,7 +106,9 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
           <div className="flex items-center gap-2 mt-2 mb-4">
             <input 
               type="checkbox" 
-              id="remember" 
+              id="remember"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
               className="w-4 h-4 rounded text-[#927a5b] focus:ring-[#927a5b] border-slate-300 cursor-pointer" 
             />
             <label htmlFor="remember" className="text-xs text-slate-500 font-medium cursor-pointer">Remember Me</label>
