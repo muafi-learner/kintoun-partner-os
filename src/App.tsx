@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   ArrowLeft, Upload, ExternalLink 
 } from 'lucide-react';
@@ -35,8 +35,36 @@ import { PdfViewer } from './components/PdfViewer';
 import { EmptyModuleState } from './components/EmptyModuleState';
 import { STORAGE_KEYS } from './services/storage';
 
+// Helper function untuk merender slide dummy
+const generateSlideDeck = (title: string, fileName: string, fileSize: string, date: string): PdfSlide[] => [
+  {
+    slideNumber: 1,
+    title: title.toUpperCase(),
+    points: [
+      'Modul Presentasi PPT Yang Diubah Menjadi PDF Resmi 2026',
+      `Nama Berkas: ${fileName}`,
+      `Ukuran Dokumen: ${fileSize || 'N/A'}`,
+      'Format Berkas: PPT / PDF Standar Operasional Kintoun',
+      `Diupload pada: ${date}`
+    ],
+    note: 'Materi presentasi terbaru dari Tim Operasional Head Office.',
+    bgColor: 'bg-[#00263f] text-white'
+  },
+  {
+    slideNumber: 2,
+    title: 'INSTRUKSI STANDAR OPERASIONAL TERBARU',
+    points: [
+      'Pelajari materi ini secara seksama untuk diterapkan di seluruh gerai.',
+      '1. Seluruh kru barista wajib memahami alur kerja dan standar kualitas sajian.',
+      '2. Gunakan takaran resep dan gramasi yang telah dibakukan.',
+      '3. Hubungi supervisor bila terdapat keraguan dalam penerapan di lapangan.'
+    ],
+    note: 'Penerapan standar menjamin konsistensi rasa dan layanan di seluruh gerai.',
+    bgColor: 'bg-[#153459] text-white'
+  }
+];
+
 export default function App() {
-  // STATE AUTENTIKASI UTAMA (Proteksi Login)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
     return localStorage.getItem('kintoun_is_authenticated') === 'true';
   });
@@ -52,97 +80,24 @@ export default function App() {
   });
 
   const [user, setUser] = useState<UserProfile>(() => {
-    // 1. Coba baca dari sessionStorage (jika login tanpa Remember Me)
     const sessionData = sessionStorage.getItem('kintoun_session');
     if (sessionData) {
-      try {
-        return JSON.parse(sessionData);
-      } catch (e) {
-        console.error("Gagal membaca session data", e);
-      }
+      try { return JSON.parse(sessionData); } catch (e) { console.error(e); }
     }
-
-    // 2. Coba baca dari localStorage (jika login dengan Remember Me)
     const localData = localStorage.getItem('kintoun_session');
     if (localData) {
-      try {
-        return JSON.parse(localData);
-      } catch (e) {
-         console.error("Gagal membaca local data", e);
-      }
+      try { return JSON.parse(localData); } catch (e) { console.error(e); }
     }
-
-    // 3. Fallback jika tidak ada sesi yang tersimpan
-    return {
-      id: '',
-      name: '',
-      role: 'user',
-      storeName: '',
-      email: ''
-    };
+    return { id: '', name: '', role: 'user', storeName: '', email: '' };
   });
 
-  // Jika belum login, pastikan Modal Login terbuka
   const [isLoginOpen, setIsLoginOpen] = useState(!isAuthenticated);
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.CURRENT_ROLE, role);
-  }, [role]);
-
-  const [mainNews, setMainNews] = useState<NewsArticle>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.MAIN_NEWS);
-    return saved ? JSON.parse(saved) : INITIAL_MAIN_NEWS;
-  });
-
-  const [specificNews, setSpecificNews] = useState<Record<CategoryId, NewsArticle>>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.SPECIFIC_NEWS);
-    return saved ? JSON.parse(saved) : INITIAL_SPECIFIC_NEWS;
-  });
-
-  const [subcategories, setSubcategories] = useState<SubcategoryCard[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.SUBCATEGORIES);
-    if (!saved) return INITIAL_SUBCATEGORIES;
-    try {
-      const parsed: SubcategoryCard[] = JSON.parse(saved);
-      const updated = INITIAL_SUBCATEGORIES.map((initSub) => {
-        const found = parsed.find((p) => p.id === initSub.id);
-        if (found) {
-          return {
-            ...found,
-            iconBgColor: initSub.iconBgColor,
-            title: initSub.title,
-            description: initSub.description,
-          };
-        }
-        return initSub;
-      });
-      const customOnes = parsed.filter((p) => !INITIAL_SUBCATEGORIES.some((init) => init.id === p.id));
-      return [...updated, ...customOnes];
-    } catch {
-      return INITIAL_SUBCATEGORIES;
-    }
-  });
-
-  const [notifications, setNotifications] = useState<AppNotification[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.NOTIFICATIONS);
-    return saved ? JSON.parse(saved) : INITIAL_NOTIFICATIONS;
-  });
-
-  const [tickets, setTickets] = useState<TicketRequest[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEYS.TICKETS);
-    return saved ? JSON.parse(saved) : [
-      {
-        id: 'tkt-01',
-        title: 'Penggantian Seal Karet Group Head Mesin Kopi',
-        category: 'equipment',
-        storeName: 'Gerai Kintoun Merdeka - Bandung',
-        urgency: 'high',
-        description: 'Terjadi sedikit rembesan air panas saat ekstraksi espresso.',
-        status: 'in_progress',
-        createdAt: 'Hari ini, 08:15 WIB'
-      }
-    ];
-  });
+  const [mainNews, setMainNews] = useState<NewsArticle>(INITIAL_MAIN_NEWS);
+  const [specificNews, setSpecificNews] = useState<Record<CategoryId, NewsArticle>>(INITIAL_SPECIFIC_NEWS);
+  const [subcategories, setSubcategories] = useState<SubcategoryCard[]>(INITIAL_SUBCATEGORIES);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [tickets, setTickets] = useState<TicketRequest[]>([]);
 
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [isNotifOpen, setIsNotifOpen] = useState(false);
@@ -151,48 +106,96 @@ export default function App() {
   const [isHostingerGuideOpen, setIsHostingerGuideOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.MAIN_NEWS, JSON.stringify(mainNews));
-  }, [mainNews]);
+  // LOGIK SINKRONISASI DATA DARI HOSTINGER (FUNGSI BARU)
+  const syncFromServer = useCallback(async () => {
+    try {
+      const response = await fetch('https://kintouncoffee.id/partner/api/upload.php');
+      const items = await response.json();
+      
+      if (!Array.isArray(items) || items.length === 0) return;
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.SPECIFIC_NEWS, JSON.stringify(specificNews));
-  }, [specificNews]);
+      let newMainNews = { ...INITIAL_MAIN_NEWS };
+      let newSpecificNews = { ...INITIAL_SPECIFIC_NEWS };
+      let newSubcategories = [...INITIAL_SUBCATEGORIES];
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.SUBCATEGORIES, JSON.stringify(subcategories));
-  }, [subcategories]);
+      // Membaca data dari yang paling lama ke yang paling baru agar data terbaru menimpa yang lama
+      const reversedItems = [...items].reverse();
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.NOTIFICATIONS, JSON.stringify(notifications));
-  }, [notifications]);
+      reversedItems.forEach(payload => {
+        const uploadDate = new Date(payload.uploadedAt).toLocaleDateString('id-ID');
+        const slideDeck = generateSlideDeck(payload.title, payload.fileName, 'N/A', uploadDate);
 
-  useEffect(() => {
-    localStorage.setItem(STORAGE_KEYS.TICKETS, JSON.stringify(tickets));
-  }, [tickets]);
+        if (payload.targetType === 'main-news') {
+          newMainNews = {
+            ...newMainNews,
+            title: payload.title,
+            pdfUrl: payload.pdfUrl,
+            pdfFileName: payload.fileName,
+            slideDeck: slideDeck,
+            uploadedBy: 'Administrator Pusat',
+            updatedAt: uploadDate
+          };
+        } else if (payload.targetType === 'specific-news' && payload.categoryId) {
+          const catId = payload.categoryId as CategoryId;
+          newSpecificNews[catId] = {
+            ...newSpecificNews[catId],
+            title: payload.title,
+            pdfUrl: payload.pdfUrl,
+            pdfFileName: payload.fileName,
+            slideDeck: slideDeck,
+            uploadedBy: 'Administrator Pusat',
+            updatedAt: uploadDate
+          };
+        } else if (payload.targetType === 'subcategory' && payload.subcategoryId) {
+          const subIndex = newSubcategories.findIndex(s => s.id === payload.subcategoryId);
+          if (subIndex > -1) {
+            newSubcategories[subIndex] = {
+              ...newSubcategories[subIndex],
+              title: payload.title,
+              pdfUrl: payload.pdfUrl,
+              pdfFileName: payload.fileName,
+              slideDeck: slideDeck,
+              isUploaded: true,
+              uploadedAt: uploadDate
+            };
+          }
+        }
+      });
 
-  // LOGIC LOGIN DIPERBARUI
+      setMainNews(newMainNews);
+      setSpecificNews(newSpecificNews);
+      setSubcategories(newSubcategories);
+
+    } catch (error) {
+      console.error("Gagal sinkronisasi dengan server Hostinger", error);
+    }
+  }, []);
+
+  // Polling data setiap 10 detik jika user sudah login
+  useEffect(() => {
+    if (isAuthenticated) {
+      syncFromServer(); // Jalankan sekali saat load
+      const interval = setInterval(syncFromServer, 10000); // Polling setiap 10 detik
+      return () => clearInterval(interval);
+    }
+  }, [isAuthenticated, syncFromServer]);
+
   const handleLogin = (newProfile: UserProfile) => {
     setUser(newProfile);
     setRole(newProfile.role);
     setIsAuthenticated(true);
     setIsLoginOpen(false);
-    
-    // Simpan status autentikasi di lokal agar setelah refresh tidak perlu login lagi
     localStorage.setItem('kintoun_is_authenticated', 'true');
     localStorage.setItem(STORAGE_KEYS.CURRENT_ROLE, newProfile.role);
   };
 
-  // LOGIC LOGOUT DIPERBARUI
   const handleLogout = () => {
     setUser({ id: '', name: '', role: 'user', storeName: '', email: '' });
     setRole('user');
     setIsAuthenticated(false);
-    setIsLoginOpen(true); // Langsung paksa buka popup
-    
+    setIsLoginOpen(true);
     localStorage.removeItem('kintoun_is_authenticated');
     localStorage.setItem(STORAGE_KEYS.CURRENT_ROLE, 'user');
-    
     setCurrentView('home');
     setActiveDashboard(null);
   };
@@ -221,125 +224,10 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleUploadSuccess = (payload: {
-    targetType: 'main-news' | 'specific-news' | 'subcategory';
-    categoryId?: CategoryId;
-    subcategoryId?: string;
-    title: string;
-    subtitle: string;
-    summary: string;
-    pdfUrl: string;
-    pdfDataUrl?: string;
-    fileId?: string;
-    fileName: string;
-    fileSize: string;
-    thumbnailUrl?: string;
-    notifyUsers: boolean;
-  }) => {
-    const uploadedSlideDeck: PdfSlide[] = [
-      {
-        slideNumber: 1,
-        title: payload.title.toUpperCase(),
-        points: [
-          payload.subtitle || 'Modul Presentasi PPT Yang Diubah Menjadi PDF Resmi 2026',
-          `Nama Berkas: ${payload.fileName}`,
-          `Ukuran Dokumen: ${payload.fileSize}`,
-          'Format Berkas: PPT / PDF Standar Operasional Kintoun',
-          `Diupload oleh: Administrator Pusat (${new Date().toLocaleDateString('id-ID')})`
-        ],
-        note: 'Materi presentasi terbaru dari Tim Operasional Head Office.',
-        bgColor: 'bg-[#00263f] text-white'
-      },
-      {
-        slideNumber: 2,
-        title: 'INSTRUKSI STANDAR OPERASIONAL TERBARU',
-        points: [
-          payload.summary || 'Pelajari materi ini secara seksama untuk diterapkan di seluruh gerai.',
-          '1. Seluruh kru barista wajib memahami alur kerja dan standar kualitas sajian.',
-          '2. Gunakan takaran resep dan gramasi yang telah dibakukan.',
-          '3. Hubungi supervisor bila terdapat keraguan dalam penerapan di lapangan.'
-        ],
-        note: 'Penerapan standar menjamin konsistensi rasa dan layanan di seluruh gerai.',
-        bgColor: 'bg-[#153459] text-white'
-      },
-      {
-        slideNumber: 3,
-        title: 'PENANGANAN SITUASI & KONTROL KUALITAS',
-        points: [
-          'Lakukan checklist berkala sebelum jam sibuk (peak hours).',
-          'Pastikan alat dan mesin selalu dikalibrasi sesuai standar temperatur.',
-          'Laporkan jika terjadi deviasi melalui sistem tiket bantuan.'
-        ],
-        note: 'Kualitas dan kepuasan pelanggan adalah prioritas utama Kintoun.',
-        bgColor: 'bg-[#1e4620] text-white'
-      }
-    ];
-
-    if (payload.targetType === 'main-news') {
-      const updated: NewsArticle = {
-        ...mainNews,
-        title: payload.title,
-        subtitle: payload.subtitle,
-        summary: payload.summary,
-        pdfUrl: payload.pdfUrl,
-        pdfDataUrl: payload.pdfDataUrl,
-        fileId: payload.fileId,
-        pdfFileName: payload.fileName,
-        pdfFileSize: payload.fileSize,
-        thumbnailUrl: payload.thumbnailUrl || mainNews.thumbnailUrl,
-        slideDeck: uploadedSlideDeck,
-        uploadedBy: 'Administrator Pusat',
-        updatedAt: 'Baru saja'
-      };
-      setMainNews(updated);
-      setTargetPdfSlide(1);
-      setCurrentView('main-news');
-    } else if (payload.targetType === 'specific-news' && payload.categoryId) {
-      const existing = specificNews[payload.categoryId];
-      const updated: NewsArticle = {
-        ...existing,
-        title: payload.title,
-        subtitle: payload.subtitle,
-        summary: payload.summary,
-        pdfUrl: payload.pdfUrl,
-        pdfDataUrl: payload.pdfDataUrl,
-        fileId: payload.fileId,
-        pdfFileName: payload.fileName,
-        pdfFileSize: payload.fileSize,
-        thumbnailUrl: payload.thumbnailUrl || existing.thumbnailUrl,
-        slideDeck: uploadedSlideDeck,
-        uploadedBy: 'Administrator Pusat',
-        updatedAt: 'Baru saja'
-      };
-      setSpecificNews(prev => ({ ...prev, [payload.categoryId!]: updated }));
-      setSelectedCategory(payload.categoryId);
-      setTargetPdfSlide(1);
-      setCurrentView('specific-news');
-    } else if (payload.targetType === 'subcategory' && payload.subcategoryId) {
-      setSubcategories(prev => prev.map(s => {
-        if (s.id === payload.subcategoryId) {
-          return {
-            ...s,
-            title: payload.title || s.title,
-            description: payload.subtitle || s.description,
-            pdfUrl: payload.pdfUrl,
-            pdfDataUrl: payload.pdfDataUrl,
-            fileId: payload.fileId,
-            pdfFileName: payload.fileName,
-            pdfFileSize: payload.fileSize,
-            slideDeck: uploadedSlideDeck,
-            isUploaded: true,
-            uploadedAt: 'Baru saja'
-          };
-        }
-        return s;
-      }));
-      if (payload.categoryId) setSelectedCategory(payload.categoryId);
-      setSelectedSubcategoryId(payload.subcategoryId);
-      setTargetPdfSlide(1);
-      setCurrentView('subcategory');
-    }
-
+  // Optimistic Update saat Admin sukses upload (UI langsung update, polling akan me-refresh ulang nanti)
+  const handleUploadSuccess = (payload: any) => {
+    syncFromServer(); // Langsung trigger sinkronisasi
+    
     if (payload.notifyUsers) {
       const newNotif: AppNotification = {
         id: `notif_${Date.now()}`,
@@ -391,12 +279,11 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#eeebe1] text-slate-800 flex flex-col font-sans selection:bg-[#00263f] selection:text-white">
       
-      {/* JIKA BELUM LOGIN, HANYA TAMPILKAN MODAL LOGIN (HALAMAN DIBLOKIR) */}
       {!isAuthenticated && (
         <div className="fixed inset-0 z-50 bg-[#00263f] flex items-center justify-center">
            <LoginModal
             isOpen={isLoginOpen}
-            onClose={() => {}} // Sengaja dikosongkan agar modal tidak bisa ditutup silang
+            onClose={() => {}} 
             currentUser={user}
             onLogin={handleLogin}
             onLogout={handleLogout}
@@ -404,7 +291,6 @@ export default function App() {
         </div>
       )}
 
-      {/* TAMPILAN UTAMA HANYA MUNCUL JIKA SUDAH LOGIN */}
       {isAuthenticated && (
         <>
           <Header
@@ -608,7 +494,6 @@ export default function App() {
             )}
           </main>
 
-          {/* Modals & Dialogs Khusus Yang Sudah Login */}
           <AdminUploadModal
             isOpen={isUploadOpen}
             onClose={() => setIsUploadOpen(false)}
