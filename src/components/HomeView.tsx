@@ -2,34 +2,55 @@ import React, { useState, useMemo } from 'react';
 import { 
   ArrowRight, ChevronRight, ExternalLink, 
   Search, Users, Coffee, Wrench, UserCheck, PackageCheck, Store, 
-  X, Layers, LifeBuoy, Edit3, Check
+  X, Layers, Edit3, Check, PlusCircle, Clock, ShieldAlert, UserX, FileText, HelpCircle, Trash2
 } from 'lucide-react';
-import { CategoryId, NewsArticle, CategoryConfig, SubcategoryCard } from '../types';
+import { CategoryId, NewsArticle, CategoryConfig, SubcategoryCard, TicketTemplate } from '../types';
 import { CATEGORIES } from '../data/initialData';
+
+const AVAILABLE_ICONS = [
+  'wrench', 'shield-alert', 'user-x', 'file-text', 'help-circle', 'clock'
+];
+
+const IconMap: Record<string, React.ElementType> = {
+  'wrench': Wrench, 'shield-alert': ShieldAlert, 'user-x': UserX, 
+  'file-text': FileText, 'help-circle': HelpCircle, 'clock': Clock
+};
+
+const getIconComponent = (iconName?: string): React.ElementType => {
+  if (iconName && IconMap[iconName]) return IconMap[iconName];
+  return HelpCircle;
+};
 
 interface HomeViewProps {
   mainNews: NewsArticle;
-  subcategories: SubcategoryCard[]; // Prop baru untuk menarik data dinamis
+  subcategories: SubcategoryCard[];
+  tickets: TicketTemplate[];
   onSelectMainNews: () => void;
   onSelectCategory: (catId: CategoryId) => void;
   onOpenTicketModal: () => void;
   onOpenUpload: () => void;
+  onUpdateTickets: (newTickets: TicketTemplate[]) => void;
   isAdmin: boolean;
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({
   mainNews,
   subcategories,
+  tickets,
   onSelectMainNews,
   onSelectCategory,
-  onOpenTicketModal, // -> TAMBAHKAN INI
-  onOpenUpload,      // -> TAMBAHKAN INI JUGA AGAR TOMBOL UPLOAD ADMIN TIDAK ERROR
+  onUpdateTickets,
   isAdmin,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   
   const [categoriesList, setCategoriesList] = useState<CategoryConfig[]>(CATEGORIES);
   const [editingCategory, setEditingCategory] = useState<CategoryConfig | null>(null);
+  
+  // State untuk Edit/Add Tiket langsung di Homepage
+  const [editingTicket, setEditingTicket] = useState<TicketTemplate | null>(null);
+  const [isAddingNewTicket, setIsAddingNewTicket] = useState(false);
+  const [showIconPicker, setShowIconPicker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   React.useEffect(() => {
@@ -74,6 +95,87 @@ export const HomeView: React.FC<HomeViewProps> = ({
     }
   };
 
+  // Fungsi simpan tiket (Add/Edit)
+  const handleSaveTicket = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingTicket) return;
+
+    setIsSaving(true);
+    try {
+      let updatedList = [...tickets];
+      if (isAddingNewTicket) {
+        updatedList.push(editingTicket);
+      } else {
+        updatedList = updatedList.map(t => t.id === editingTicket.id ? editingTicket : t);
+      }
+
+      const response = await fetch('https://kintouncoffee.id/partner/api/update-tickets.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tickets: updatedList })
+      });
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        onUpdateTickets(updatedList);
+        setEditingTicket(null);
+        setIsAddingNewTicket(false);
+        setShowIconPicker(false);
+      } else {
+        alert(result.message || 'Gagal menyimpan tiket.');
+      }
+    } catch (error) {
+      console.error("Gagal menyimpan tiket", error);
+      alert('Koneksi ke server terputus.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Fungsi hapus tiket
+  const handleDeleteTicket = async () => {
+    if (!editingTicket) return;
+    const confirmDelete = window.confirm(`Hapus template tiket "${editingTicket.title}"?`);
+    if (!confirmDelete) return;
+
+    setIsSaving(true);
+    try {
+      const updatedList = tickets.filter(t => t.id !== editingTicket.id);
+      const response = await fetch('https://kintouncoffee.id/partner/api/update-tickets.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tickets: updatedList })
+      });
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        onUpdateTickets(updatedList);
+        setEditingTicket(null);
+        setIsAddingNewTicket(false);
+      } else {
+        alert(result.message || 'Gagal menghapus tiket.');
+      }
+    } catch (error) {
+      console.error("Gagal menghapus tiket", error);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleOpenAddNewTicket = () => {
+    setIsAddingNewTicket(true);
+    setShowIconPicker(false);
+    setEditingTicket({
+      id: `tkt_${Date.now()}`,
+      department: 'DEPARTEMEN',
+      title: '',
+      description: '',
+      sla: '1x24 Jam',
+      iconName: 'file-text',
+      badgeColor: 'bg-blue-100 text-blue-700 border-blue-200'
+    });
+  };
+
   const renderCategoryIcon = (iconName: string) => {
     const iconClass = "w-6 h-6 shrink-0";
     switch (iconName) {
@@ -93,19 +195,17 @@ export const HomeView: React.FC<HomeViewProps> = ({
     return categoriesList.filter((cat) => {
       const matchName = cat.name.toLowerCase().includes(q);
       const matchTagline = cat.tagline?.toLowerCase().includes(q);
-      
-      // Ambil modul berdasarkan ID kategori lalu cek kecocokan pencarian
       const categoryModules = subcategories.filter(sub => sub.categoryId === cat.id);
       const matchItems = categoryModules.some((sub) => sub.title.toLowerCase().includes(q));
-      
       return matchName || matchTagline || matchItems;
     });
   }, [searchQuery, categoriesList, subcategories]);
 
   return (
-    <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-47 sm:py-51 font-sans min-h-full flex flex-col justify-between">
+    <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 font-sans min-h-full flex flex-col justify-between">
       <div>
-        <section className="mb-41 sm:mb-45 px-2 max-w-3xl">
+        {/* HERO SECTION */}
+        <section className="mb-12 px-2 max-w-3xl">
           <h1 className="font-poppins text-4xl sm:text-6xl lg:text-7xl text-[#00263f] leading-[1.1] mb-6">
             <span className="font-medium">Welcome to</span><br />
             <span className="font-black tracking-tight uppercase">KINTOUN</span> <span className="font-medium">Partner!</span>
@@ -115,6 +215,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </p>
         </section>
 
+        {/* RECENT UPDATE */}
         <section className="mb-10 sm:mb-14">
           <div className="flex items-center gap-2 mb-3 px-1">
             <span className="w-2 h-2 rounded-full bg-amber-500"></span>
@@ -144,6 +245,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
         </section>
 
+        {/* SEARCH & CATEGORY GRID */}
         <section className="mb-6 flex flex-col md:flex-row md:items-center justify-between gap-4 px-1">
           <p className="hidden md:block text-xs sm:text-sm text-slate-600 font-semibold">
             Pilih topik di bawah atau ketik kata kunci kendala untuk menemukan solusi
@@ -168,9 +270,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </div>
         </section>
 
-        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 mb-10">
+        <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 mb-16">
           {filteredCategories.map((cat) => {
-            // Tarik modul dinamis secara langsung berdasarkan ID kategori
             const categoryModules = subcategories.filter(sub => sub.categoryId === cat.id);
 
             return (
@@ -243,8 +344,74 @@ export const HomeView: React.FC<HomeViewProps> = ({
             );
           })}
         </section>
+
+        {/* BAGIAN BARU: KATALOG TIKET & ESKALASI DI HOMEPAGE */}
+        <section className="mb-16 pt-8 border-t border-[#d6cfbf]/60">
+          <div className="mb-6 px-1">
+            <h2 className="text-2xl sm:text-3xl font-black text-[#00263f] uppercase tracking-tight mb-1">
+              KATALOG TIKET & ESKALASI
+            </h2>
+            <p className="text-xs sm:text-sm text-slate-600 font-medium">
+              Pilih kategori tiket di bawah ini untuk mengajukan permintaan ke Head Office.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {tickets.map((ticket) => {
+              const TicketIcon = getIconComponent(ticket.iconName);
+              return (
+                <div key={ticket.id} className="group relative bg-white hover:bg-slate-50 border border-[#d6cfbf] rounded-2xl p-5 shadow-xs flex flex-col justify-between min-h-[220px]">
+                  {isAdmin && (
+                    <button 
+                      onClick={() => { setIsAddingNewTicket(false); setEditingTicket(ticket); }} 
+                      className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-100 hover:bg-amber-400 text-slate-600 hover:text-slate-950 transition z-10 cursor-pointer"
+                      title="Edit Tiket Ini"
+                    >
+                      <Edit3 className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  <div>
+                    <div className="mb-4 pr-8">
+                      <span className={`inline-flex items-center px-2 py-1 rounded text-[10px] font-black uppercase border ${ticket.badgeColor}`}>{ticket.department}</span>
+                    </div>
+                    <div className="flex gap-3 mb-2">
+                      <div className="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 shrink-0">
+                        <TicketIcon className="w-4 h-4" />
+                      </div>
+                      <h3 className="text-sm font-black text-slate-900 uppercase leading-snug">{ticket.title}</h3>
+                    </div>
+                    <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">{ticket.description}</p>
+                  </div>
+                  <div className="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-slate-500">
+                      <Clock className="w-3.5 h-3.5" />
+                      <span className="text-[11px] font-bold">SLA: {ticket.sla}</span>
+                    </div>
+                    <button className="px-4 py-2 rounded-xl bg-[#00263f] text-white text-xs font-black flex items-center gap-1.5 hover:bg-[#3c586d] transition shadow-2xs cursor-pointer">
+                      Buat Tiket <ArrowRight className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+
+            {isAdmin && (
+              <div 
+                onClick={handleOpenAddNewTicket} 
+                className="border-2 border-dashed border-amber-300 bg-amber-50/40 hover:bg-amber-50 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer min-h-[220px] transition"
+              >
+                <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mb-2.5 shadow-2xs">
+                  <PlusCircle className="w-5 h-5" />
+                </div>
+                <h4 className="text-xs font-black text-amber-900 uppercase">TAMBAH FORM TIKET</h4>
+                <p className="text-[11px] text-amber-700 mt-1">Buat template tiket eskalasi baru</p>
+              </div>
+            )}
+          </div>
+        </section>
       </div>
 
+      {/* MODAL EDIT / TAMBAH KATEGORI */}
       {editingCategory && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl animate-in fade-in duration-200">
@@ -313,31 +480,70 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
       )}
 
-      <div className="snap-start snap-always shrink-0 pt-[160px] pb-[20px]">
-        <section className="mt-8 mb-12 w-full max-w-2xl mx-auto text-center bg-white rounded-3xl border border-[#d6cfbf] p-6 sm:p-10 shadow-sm">
-          <div className="flex justify-center mb-4">
-            <div className="w-10 h-10 rounded-full bg-[#eeebe1] flex items-center justify-center">
-              <LifeBuoy className="w-5 h-5 text-[#00263f]" />
+      {/* MODAL EDIT / TAMBAH TIKET */}
+      {editingTicket && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
+              <h3 className="text-base font-black text-[#00263f] uppercase">{isAddingNewTicket ? 'Tambah Tiket Baru' : 'Edit Tiket'}</h3>
+              <button onClick={() => setEditingTicket(null)} className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
             </div>
+            
+            <form onSubmit={handleSaveTicket} className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Departemen (Label)</label>
+                <input type="text" value={editingTicket.department} onChange={(e) => setEditingTicket({ ...editingTicket, department: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-[#00263f]" required />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Judul Tiket</label>
+                <input type="text" value={editingTicket.title} onChange={(e) => setEditingTicket({ ...editingTicket, title: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-[#00263f]" required />
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Deskripsi & Instruksi</label>
+                <textarea value={editingTicket.description} onChange={(e) => setEditingTicket({ ...editingTicket, description: e.target.value })} rows={2} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-[#00263f] resize-none" required />
+              </div>
+              <div className="flex gap-4">
+                <div className="flex-1">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">SLA (Target Waktu)</label>
+                  <input type="text" value={editingTicket.sla} onChange={(e) => setEditingTicket({ ...editingTicket, sla: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:ring-2 focus:ring-[#00263f]" required />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Warna Label</label>
+                  <select value={editingTicket.badgeColor} onChange={(e) => setEditingTicket({ ...editingTicket, badgeColor: e.target.value })} className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold">
+                    <option value="bg-blue-100 text-blue-700 border-blue-200">Biru (Maintenance)</option>
+                    <option value="bg-rose-100 text-rose-700 border-rose-200">Merah (Kritikal/HC)</option>
+                    <option value="bg-emerald-100 text-emerald-700 border-emerald-200">Hijau (Operasional)</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-2">Ikon</label>
+                <div className="flex gap-2">
+                  {AVAILABLE_ICONS.map(icon => {
+                    const IconComp = getIconComponent(icon);
+                    return (
+                      <button key={icon} type="button" onClick={() => setEditingTicket({ ...editingTicket, iconName: icon })} className={`p-2 rounded-lg border flex items-center justify-center ${editingTicket.iconName === icon ? 'bg-[#00263f] text-white' : 'bg-slate-50 text-slate-400'}`}>
+                        <IconComp className="w-4 h-4" />
+                      </button>
+                    )
+                  })}
+                </div>
+              </div>
+              <div className="flex items-center justify-between pt-4 mt-2 border-t border-slate-100">
+                {!isAddingNewTicket ? (
+                  <button type="button" onClick={handleDeleteTicket} className="px-4 py-2 rounded-xl text-xs font-bold text-rose-600 bg-rose-50 flex items-center gap-1.5 cursor-pointer"><Trash2 className="w-4 h-4"/> Hapus</button>
+                ) : <div></div>}
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setEditingTicket(null)} className="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 bg-slate-100 cursor-pointer">Batal</button>
+                  <button type="submit" disabled={isSaving} className="px-5 py-2 rounded-xl text-xs font-black bg-[#00263f] text-white flex items-center gap-1.5 cursor-pointer"><Check className="w-4 h-4"/> Simpan</button>
+                </div>
+              </div>
+            </form>
           </div>
-          <h3 className="text-[10px] sm:text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 sm:mb-3">
-            Eskalasi & Bantuan Cepat
-          </h3>
-          <h4 className="text-base sm:text-lg font-black text-[#00263f] mb-3">
-            Kendala Tidak Ditemukan di Panduan Gerai?
-          </h4>
-          <p className="text-xs sm:text-sm text-slate-500 mb-6 sm:mb-8 px-2 leading-relaxed">
-            Jika terjadi kerusakan darurat pada mesin, atau kondisi operasional yang membutuhkan penanganan langsung dari teknisi Kintoun, gunakan portal khusus eskalasi ini.
-          </p>
-          <button
-            onClick={onOpenTicketModal}
-            className="inline-flex items-center gap-2 px-6 py-3 sm:py-3.5 rounded-xl bg-[#00263f] hover:bg-[#3c586d] text-white font-black text-xs tracking-wider uppercase transition shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
-          >
-            <span>Buka Katalog Tiket</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
-        </section>
-      </div>
+        </div>
+      )}
     </div>
   );
 };
