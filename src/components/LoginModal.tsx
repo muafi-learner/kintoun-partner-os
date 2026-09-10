@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X } from 'lucide-react';
+import { X, Loader2 } from 'lucide-react';
 import { UserProfile } from '../types';
 
 interface LoginModalProps {
@@ -15,60 +15,58 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
     // Validasi input kosong
     if (!username.trim() || !password.trim()) {
-      setError('Username dan Password wajib diisi.');
+      setError('Username/Email dan Password wajib diisi.');
       return;
     }
 
-    let authenticatedUser: UserProfile | null = null;
+    setIsLoading(true);
 
-    // Logic Autentikasi Head Office
-    if (username === 'headofficeadmin' && password === 'headofficeadmin') {
-      authenticatedUser = {
-        id: 'adm_01',
-        name: 'Head Office Administrator',
-        role: 'admin',
-        storeName: 'HQ & Operational Central Kintoun',
-        email: 'admin.ops@kintoun.id'
-      };
-      
-    // Logic Autentikasi Store User
-    } else if (username === 'malanggalunggung' && password === 'malanggalunggung') {
-      authenticatedUser = {
-        id: 'usr_02',
-        name: 'Store Leader',
-        role: 'user',
-        storeName: 'Store Malang Galunggung',
-        email: 'store.malang@kintoun.id'
-      };
-      
-    // Gagal Login
-    } else {
-      setError('Username atau Password tidak valid!');
-      return;
-    }
+    try {
+      // Tembak request ke backend login.php di Hostinger
+      const response = await fetch('https://kintouncoffee.id/partner/api/login.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          email: username.trim(), // Bisa diisi email atau username
+          password: password 
+        })
+      });
 
-    // Jika berhasil login, simpan sesi dan tutup modal
-    if (authenticatedUser) {
-      if (rememberMe) {
-        localStorage.setItem('kintoun_session', JSON.stringify(authenticatedUser));
+      const result = await response.json();
+
+      if (response.ok && result.status === 'success' && result.user) {
+        const authenticatedUser: UserProfile = result.user;
+
+        // Simpan sesi ke localStorage atau sessionStorage
+        if (rememberMe) {
+          localStorage.setItem('kintoun_session', JSON.stringify(authenticatedUser));
+        } else {
+          sessionStorage.setItem('kintoun_session', JSON.stringify(authenticatedUser));
+        }
+
+        onLogin(authenticatedUser);
+        onClose();
+        setUsername('');
+        setPassword('');
+        setRememberMe(false);
       } else {
-        sessionStorage.setItem('kintoun_session', JSON.stringify(authenticatedUser));
+        setError(result.message || 'Username atau Password salah!');
       }
-      
-      onLogin(authenticatedUser);
-      onClose();
-      setUsername('');
-      setPassword('');
-      setRememberMe(false);
+    } catch (err) {
+      console.error('Gagal terhubung ke server login:', err);
+      setError('Terjadi kesalahan koneksi ke server Hostinger.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -85,10 +83,11 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
           <div>
             <input
               type="text"
-              placeholder="Username"
+              placeholder="Email / Username"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full pb-2 border-b border-slate-200 bg-transparent text-sm focus:outline-none focus:border-[#927a5b] transition-colors placeholder:text-slate-400 text-slate-800"
+              disabled={isLoading}
+              className="w-full pb-2 border-b border-slate-200 bg-transparent text-sm focus:outline-none focus:border-[#927a5b] transition-colors placeholder:text-slate-400 text-slate-800 disabled:opacity-50"
             />
           </div>
           <div>
@@ -97,7 +96,8 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
               placeholder="Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full pb-2 border-b border-slate-200 bg-transparent text-sm focus:outline-none focus:border-[#927a5b] transition-colors placeholder:text-slate-400 text-slate-800"
+              disabled={isLoading}
+              className="w-full pb-2 border-b border-slate-200 bg-transparent text-sm focus:outline-none focus:border-[#927a5b] transition-colors placeholder:text-slate-400 text-slate-800 disabled:opacity-50"
             />
           </div>
           
@@ -109,6 +109,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
               id="remember"
               checked={rememberMe}
               onChange={(e) => setRememberMe(e.target.checked)}
+              disabled={isLoading}
               className="w-4 h-4 rounded text-[#927a5b] focus:ring-[#927a5b] border-slate-300 cursor-pointer" 
             />
             <label htmlFor="remember" className="text-xs text-slate-500 font-medium cursor-pointer">Remember Me</label>
@@ -116,9 +117,17 @@ export const LoginModal: React.FC<LoginModalProps> = ({ isOpen, onClose, onLogin
 
           <button
             type="submit"
-            className="w-full py-3.5 rounded-xl bg-[#927a5b] hover:bg-[#7e694e] text-white font-black text-sm tracking-widest uppercase transition shadow-md cursor-pointer"
+            disabled={isLoading}
+            className="w-full py-3.5 rounded-xl bg-[#927a5b] hover:bg-[#7e694e] text-white font-black text-sm tracking-widest uppercase transition shadow-md cursor-pointer flex items-center justify-center gap-2 disabled:opacity-70"
           >
-            LOGIN
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>Memproses...</span>
+              </>
+            ) : (
+              <span>LOGIN</span>
+            )}
           </button>
         </form>
       </div>
