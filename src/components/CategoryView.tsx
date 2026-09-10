@@ -7,11 +7,10 @@ import {
   Calendar, TrendingUp, AlertCircle, ShoppingCart, Truck, Trash2, 
   CheckSquare, DoorOpen, CreditCard, ShieldCheck, CheckCircle2, 
   PlusCircle, ExternalLink, Boxes, Sparkles, ArrowLeft, LifeBuoy, 
-  Edit3, Check, HelpCircle, Info, Monitor, Smartphone, Camera, FileText
+  Edit3, Check, HelpCircle, Info, Monitor, Smartphone, Camera
 } from 'lucide-react';
 import { CategoryId, SubcategoryCard, NewsArticle } from '../types';
 import { CATEGORIES } from '../data/initialData';
-import { isSubcategoryUploaded } from '../utils/uploadStatus';
 
 const AVAILABLE_ICONS = [
   'book-open', 'coffee', 'users', 'wrench', 'alert-octagon', 
@@ -52,14 +51,13 @@ interface CategoryViewProps {
 }
 
 export const CategoryView: React.FC<CategoryViewProps> = ({
-  categoryId, subcategories: initialSubcategories, onSelectSubcategory, onOpenUpload, onBackToHome, isAdmin, onOpenMobileSidebar
+  categoryId, subcategories: initialSubcategories, onSelectSubcategory, onBackToHome, isAdmin
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [subcategoriesList, setSubcategoriesList] = useState<SubcategoryCard[]>(initialSubcategories);
   const [editingSubcat, setEditingSubcat] = useState<SubcategoryCard | null>(null);
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  
   const [showIconPicker, setShowIconPicker] = useState(false);
 
   React.useEffect(() => {
@@ -84,6 +82,7 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
       title: '',
       description: '',
       iconName: 'book-open',
+      hasDetail: false // Required default property
     });
   };
 
@@ -207,14 +206,13 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
           {visibleSubcategories.map((subcat) => {
-            const uploaded = isSubcategoryUploaded(subcat);
             const SubcatIcon = getIconComponent(subcat.iconName);
 
             return (
               <div 
                 key={subcat.id} 
                 onClick={() => onSelectSubcategory(subcat.id)} 
-                className="group relative bg-white hover:bg-[#fdfcfb] rounded-2xl p-5 sm:p-6 border border-[#e2dfd5] hover:border-[#b8ad98] shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between min-h-[190px]"
+                className="group relative bg-white hover:bg-[#fdfcfb] rounded-2xl p-5 sm:p-6 border border-[#e2dfd5] hover:border-[#b8ad98] shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col min-h-[140px]"
               >
                 {isAdmin && (
                   <button
@@ -231,31 +229,23 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
                   </button>
                 )}
 
-                <div>
-                  <div className="flex items-center gap-3 mb-4 pr-6">
-                    <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-slate-100 border border-slate-200 text-slate-600 shadow-2xs">
-                      <SubcatIcon className="w-5 h-5 shrink-0" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="text-xs sm:text-sm font-black text-slate-900 uppercase truncate">{subcat.title}</h4>
-                    </div>
+                <div className="flex items-center gap-3 mb-4 pr-6">
+                  <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-slate-100 border border-slate-200 text-slate-600 shadow-2xs">
+                    <SubcatIcon className="w-5 h-5 shrink-0" />
                   </div>
-                  <p className="text-xs text-slate-600 font-medium leading-relaxed mb-4 line-clamp-3">{subcat.description}</p>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="text-xs sm:text-sm font-black text-slate-900 uppercase truncate group-hover:text-[#00263f] transition">{subcat.title}</h4>
+                  </div>
                 </div>
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-end">
-                  <button className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 cursor-pointer ${uploaded ? 'bg-[#00263f] text-white shadow-2xs hover:bg-[#3c586d]' : isAdmin ? 'bg-amber-400 text-slate-950 hover:bg-amber-300 shadow-2xs' : 'bg-slate-100 text-slate-500'}`}>
-                    <span>{uploaded ? 'Pelajari' : isAdmin ? 'Isi Materi' : 'Belum Diisi'}</span>
-                  </button>
-                </div>
+                <p className="text-xs text-slate-600 font-medium leading-relaxed line-clamp-3">{subcat.description}</p>
               </div>
             );
           })}
 
           {isAdmin && (
-            <div onClick={handleOpenAddNew} className="border-2 border-dashed border-amber-300 bg-amber-50/40 hover:bg-amber-50 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition min-h-[190px]">
+            <div onClick={handleOpenAddNew} className="border-2 border-dashed border-amber-300 bg-amber-50/40 hover:bg-amber-50 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition min-h-[140px]">
               <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mb-2.5 shadow-2xs"><PlusCircle className="w-5 h-5" /></div>
               <h4 className="text-xs font-black text-amber-900 uppercase">Tambah Modul Baru</h4>
-              <p className="text-[11px] text-amber-700 mt-1 max-w-xs leading-relaxed">Buat kartu sub-topik baru secara manual</p>
             </div>
           )}
         </div>
