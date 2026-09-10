@@ -47,7 +47,7 @@ export const PdfViewer: React.FC<PdfViewerProps> = ({
   }
 
   return (
-    <div className="w-full flex flex-col gap-2">
+    <div className="w-full h-full flex flex-col gap-2">
       <VisualPdfSlideViewer
         title={title}
         subtitle={subtitle}
