@@ -11,10 +11,10 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs
 interface AdminUploadModalProps {
   isOpen: boolean;
   onClose: () => void;
-  // //code: Tambahan props untuk menerima konteks spesifik dari tombol yang diklik
   initialTargetType?: 'main-news' | 'subcategory';
   initialCategoryId?: CategoryId;
   initialSubcategoryId?: string;
+  subcategories: any[];
   onUploadSuccess: (payload: {
     targetType: 'main-news' | 'subcategory';
     categoryId?: CategoryId;
@@ -31,22 +31,12 @@ interface AdminUploadModalProps {
   }) => void;
 }
 
-interface BasicSubcategory {
-  id: string;
-  categoryId: string;
-  title: string;
-  description?: string;
-  note?: string;
-}
-
 export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
-  isOpen, onClose, onUploadSuccess, initialTargetType, initialCategoryId, initialSubcategoryId
+  isOpen, onClose, onUploadSuccess, initialTargetType, initialCategoryId, initialSubcategoryId, subcategories
 }) => {
   const [targetType, setTargetType] = useState<'main-news' | 'subcategory'>('main-news');
   const [selectedCategory, setSelectedCategory] = useState<CategoryId>('customer');
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>('');
-  
-  const [subcategoriesList, setSubcategoriesList] = useState<BasicSubcategory[]>([]);
   
   const [title, setTitle] = useState('');
   const [subtitle, setSubtitle] = useState('');
@@ -58,15 +48,13 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
   
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [processingStatus, setProcessingStatus] = useState('Mengunggah ke Hostinger...');
+  const [processingStatus, setProcessingStatus] = useState('Mengunggah...');
   const [errorMessage, setErrorMessage] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // //code: Menandakan bahwa modal ini dibuka dari tombol "Isi Materi" spesifik
   const isSpecificUpload = !!initialSubcategoryId;
 
-  // Reset state dan ambil data saat modal dibuka
   useEffect(() => {
     if (isOpen) {
       setTargetType(initialTargetType || 'main-news');
@@ -77,17 +65,10 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
       setIsProcessing(false);
       setTitle('');
       setSubtitle('');
-
-      fetch(`https://kintouncoffee.id/partner/api/get-subcategories.php?t=${Date.now()}`)
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data)) setSubcategoriesList(data);
-        })
-        .catch(err => console.error("Gagal memuat sub-topik dari server", err));
     }
   }, [isOpen, initialTargetType, initialCategoryId, initialSubcategoryId]);
 
-  const filteredSubcategories = subcategoriesList.filter(sub => sub.categoryId === selectedCategory);
+  const filteredSubcategories = subcategories.filter(sub => sub.categoryId === selectedCategory);
 
   useEffect(() => {
     if (!isSpecificUpload && filteredSubcategories.length > 0) {
@@ -137,7 +118,7 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
     let finalSummary = summary;
 
     if (targetType === 'subcategory') {
-      const selectedSubObj = subcategoriesList.find(s => s.id === selectedSubcategory);
+      const selectedSubObj = subcategories.find(s => s.id === selectedSubcategory);
       if (!selectedSubObj) {
         setErrorMessage('Pilih sub-topik yang valid terlebih dahulu.');
         return;
@@ -159,7 +140,7 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
       let extractedText = '';
       
       if (file.name.toLowerCase().endsWith('.pdf')) {
-        setProcessingStatus('Memindai & mengekstrak teks PDF...');
+        setProcessingStatus('Mengekstrak teks PDF...');
         try {
           const arrayBuffer = await file.arrayBuffer();
           const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -176,7 +157,7 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
         }
       }
 
-      setProcessingStatus('Mengirim data ke server Hostinger...');
+      setProcessingStatus('Mengirim ke server...');
 
       const formData = new FormData();
       formData.append('file', file);
@@ -201,7 +182,7 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
       const result = await response.json();
 
       if (result.status === 'error') {
-        throw new Error(result.message || 'Gagal mengunggah file ke server Hostinger.');
+        throw new Error(result.message || 'Gagal mengunggah file.');
       }
 
       const formattedSize = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
@@ -227,23 +208,27 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
       setErrorMessage(err.message || 'Koneksi terputus. Pastikan API tersedia.');
     } finally {
       setIsProcessing(false);
-      setProcessingStatus('Mengunggah ke Hostinger...');
+      setProcessingStatus('Mengunggah...');
     }
   };
 
   return (
     <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 overflow-y-auto">
-      <div className="bg-white rounded-2xl max-w-xl w-full shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in duration-150">
-        <div className="bg-[#00263f] text-white px-6 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-2.5">
-            <div>
-              <h3 className="text-base font-bold">Input Dokumen</h3>
+      <div className={`bg-white rounded-2xl w-full shadow-2xl border border-slate-200 overflow-hidden my-8 animate-in fade-in duration-150 ${isSpecificUpload ? 'max-w-sm' : 'max-w-xl'}`}>
+        
+        {/* //code: Sembunyikan header biru jika ini mode pop-up minimalis */}
+        {!isSpecificUpload && (
+          <div className="bg-[#00263f] text-white px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-2.5">
+              <div>
+                <h3 className="text-base font-bold">Input Dokumen</h3>
+              </div>
             </div>
+            <button onClick={onClose} className="p-1 rounded-full text-white/70 hover:text-white transition cursor-pointer">
+              <X className="w-5 h-5" />
+            </button>
           </div>
-          <button onClick={onClose} className="p-1 rounded-full text-white/70 hover:text-white transition cursor-pointer">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
+        )}
 
         <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {errorMessage && (
@@ -252,7 +237,6 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
             </div>
           )}
 
-          {/* //code: Sembunyikan Pilihan Kategori jika dibuka secara spesifik */}
           {!isSpecificUpload && (
             <>
               <div>
@@ -274,7 +258,7 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
                       targetType === 'subcategory' ? 'bg-[#00263f] text-white border-[#00263f]' : 'bg-slate-50 text-slate-700 border-slate-300'
                     }`}
                   >
-                    SOP Gerai
+                    Kategori
                   </button>
                 </div>
               </div>
@@ -282,7 +266,7 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
               {targetType === 'subcategory' && (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1">Kategori Utama</label>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">Kategori</label>
                     <select
                       value={selectedCategory}
                       onChange={(e) => setSelectedCategory(e.target.value as CategoryId)}
@@ -298,7 +282,7 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
                   </div>
                   
                   <div>
-                    <label className="block text-xs font-semibold text-slate-600 mb-1">Sub-Topik</label>
+                    <label className="block text-xs font-semibold text-slate-600 mb-1">Sub-Kategori</label>
                     <select
                       value={selectedSubcategory}
                       onChange={(e) => setSelectedSubcategory(e.target.value)}
@@ -312,7 +296,7 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
                           </option>
                         ))
                       ) : (
-                        <option value="">Belum ada sub-topik</option>
+                        <option value="">Belum ada sub-kategoriopik</option>
                       )}
                     </select>
                   </div>
@@ -322,15 +306,20 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
           )}
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
-              {!isSpecificUpload ? '2. Pilih File PDF' : 'PILIH FILE PDF'}
-            </label>
+            {!isSpecificUpload && (
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+                2. Pilih File PDF
+              </label>
+            )}
             <div
               onDragOver={(e) => { e.preventDefault(); setIsDragging(true); }}
               onDragLeave={() => setIsDragging(false)}
               onDrop={handleDrop}
               onClick={() => fileInputRef.current?.click()}
-              className={`border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition ${
+              // //code: Tambahkan py-16 atau h-48 untuk membuat kotaknya lebih tinggi (persegi)
+              className={`border-2 border-dashed rounded-xl flex flex-col items-center justify-center text-center cursor-pointer transition ${
+                isSpecificUpload ? 'py-16 px-6' : 'p-6' 
+              } ${
                 isDragging ? 'border-blue-500 bg-blue-50/50' : file ? 'border-emerald-400 bg-emerald-50/30' : 'border-slate-300 bg-slate-50/50'
               }`}
             >
@@ -348,13 +337,12 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
               ) : (
                 <div className="space-y-1">
                   <FolderOpen className="w-8 h-8 text-slate-400 mx-auto" />
-                  <p className="text-xs font-bold text-slate-700">Klik atau tarik file ke sini</p>
+                  <p className="text-xs font-bold text-slate-500">Klik atau tarik file .pdf ke sini</p>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Sembunyikan form Judul jika SOP Gerai ATAU Specific Upload */}
           {!isSpecificUpload && targetType === 'main-news' && (
             <div className="space-y-3">
               <div>
@@ -379,7 +367,7 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
             </div>
           )}
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200 mt-4">
+          <div className={`flex items-center justify-end gap-2 ${!isSpecificUpload ? 'pt-3 border-t border-slate-200 mt-4' : 'mt-2'}`}>
             <button type="button" onClick={onClose} disabled={isProcessing} className="px-4 py-2 text-xs font-bold text-slate-600">Batal</button>
             <button type="submit" disabled={isProcessing} className="px-5 py-2.5 bg-amber-500 text-slate-950 font-extrabold text-xs rounded-xl flex items-center gap-2">
               {isProcessing ? processingStatus : <><Upload className="w-4 h-4" /> Publikasikan</>}
