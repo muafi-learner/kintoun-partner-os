@@ -96,7 +96,7 @@ export default function App() {
   // SINKRONISASI KATEGORI KE DOMAIN PUBLIK HOSTINGER DENGAN ANTI-CACHE
   const syncCategoriesFromServer = useCallback(async () => {
     try {
-      const response = await fetch(`https://kintouncoffee.id/partner/api/categories.json?t=${Date.now()}`);
+      const response = await fetch(`https://kintouncoffee.id/partner/api/get-categories.php?t=${Date.now()}`);
       if (!response.ok) return;
 
       const textResponse = await response.text();
@@ -106,19 +106,24 @@ export default function App() {
 
       const data = JSON.parse(textResponse);
       if (Array.isArray(data) && data.length > 0) {
-        // Jika Anda menggunakan state kategori terpusat, perbarui di sini. 
-        // Jika dikelola langsung di dalam HomeView, sinkronisasi ini berfungsi menjaga cache server tetap aktif.
+        // Data kategori berhasil dimuat dari server publik
       }
     } catch (error) {
       console.error("Gagal sinkronisasi kategori dari server", error);
     }
   }, []);
   
-  // SINKRONISASI DATA DARI HOSTINGER
+  // SINKRONISASI DATA FILE PDF DARI HOSTINGER DENGAN PENGAMAN ANTI-CACHE
   const syncFromServer = useCallback(async () => {
     try {
-      const response = await fetch('https://kintouncoffee.id/partner/api/upload.php');
-      const items = await response.json();
+      const response = await fetch(`https://kintouncoffee.id/partner/api/upload.php?t=${Date.now()}`);
+      
+      const textResponse = await response.text();
+      if (!textResponse || textResponse.trim() === '') {
+        return; 
+      }
+
+      const items = JSON.parse(textResponse);
       
       if (!Array.isArray(items)) return;
 
@@ -278,7 +283,6 @@ export default function App() {
     }
   };
 
-  // FUNGSI HAPUS DOKUMEN (DELETE API)
   const handleDeletePdf = async (targetFileId?: string) => {
     try {
       const fileIdToDelete = targetFileId || mainNews.fileId;
