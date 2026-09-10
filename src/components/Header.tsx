@@ -18,6 +18,7 @@ interface HeaderProps {
   onToggleMobileSidebar?: () => void;
   onLogout?: () => void;
   onOpenProfile?: () => void;
+  onOpenTicketCatalog: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -32,7 +33,8 @@ export const Header: React.FC<HeaderProps> = ({
   onGoHome,
   onToggleMobileSidebar,
   onLogout,
-  onOpenProfile
+  onOpenProfile,
+  onOpenTicketCatalog
 }) => {
   return (
     <header
@@ -63,10 +65,10 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
 
-        {/* TENGAH: Navigasi Kategori (Absolute Centered agar 100% Simetris di Desktop) */}
+        {/* TENGAH: Navigasi Kategori */}
         <nav className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-6">
           {CATEGORIES.map((cat) => {
-            const isActive = currentView !== 'home' && currentView !== 'main-news' && currentView !== 'dashboard' && selectedCategory === cat.id;
+            const isActive = currentView !== 'home' && currentView !== 'main-news' && currentView !== 'dashboard' && currentView !== 'ticket-catalog' && selectedCategory === cat.id;
             return (
               <button
                 key={cat.id}
@@ -81,9 +83,21 @@ export const Header: React.FC<HeaderProps> = ({
               </button>
             );
           })}
+
+          {/* MENU TIKET: STYLE DISAMAKAN DENGAN KATEGORI */}
+          <button
+            onClick={onOpenTicketCatalog}
+            className={`whitespace-nowrap text-[11px] font-bold tracking-widest uppercase transition-colors cursor-pointer ${
+              currentView === 'ticket-catalog'
+                ? 'text-white' 
+                : 'text-[#8da2b0] hover:text-white'
+            }`}
+          >
+            ESKALASI TIKET
+          </button>
         </nav>
 
-        {/* KANAN: Tools & Profile (Desain Minimalis tanpa kotak teks panjang) */}
+        {/* KANAN: Tools & Profile */}
         <div className="flex items-center gap-4 sm:gap-5 shrink-0">
           {role === 'admin' && (
             <button
@@ -114,7 +128,6 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
-          {/* Ikon Profil Bulat (Menggantikan Sidebar & Nama Teks Panjang di Desktop) */}
           <button 
             onClick={onOpenProfile || onLogout} 
             className="hidden lg:flex items-center justify-center w-7 h-7 rounded-full bg-[#10354f] text-sky-400 hover:bg-[#1a4666] hover:text-white transition cursor-pointer ring-1 ring-white/10"
@@ -123,7 +136,6 @@ export const Header: React.FC<HeaderProps> = ({
             {role === 'admin' ? <Building className="w-3.5 h-3.5" /> : <StoreIcon className="w-3.5 h-3.5" />}
           </button>
 
-          {/* Hamburger Menu (Hanya Muncul di Mobile/HP) */}
           {onToggleMobileSidebar && (
             <button
               onClick={onToggleMobileSidebar}
