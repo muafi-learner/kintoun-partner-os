@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight, ArrowLeft, Upload, AlertCircle, Clock, ExternalLink } from 'lucide-react';
+import { ChevronRight, ArrowLeft, Upload, ExternalLink } from 'lucide-react';
 import { SubcategoryCard } from '../types';
 import { PdfViewer } from './PdfViewer';
 import { EmptyModuleState } from './EmptyModuleState';
@@ -18,6 +18,7 @@ interface LearningCardsViewProps {
   cardData: SubcategoryCard;
   onBack: () => void;
   onOpenUpload: () => void;
+  onDeletePdf?: (subcategoryId: string) => void; // Prop baru untuk handler hapus
   isAdmin: boolean;
   targetSlide?: number;
 }
@@ -26,6 +27,7 @@ export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
   cardData,
   onBack,
   onOpenUpload,
+  onDeletePdf,
   isAdmin,
   targetSlide = 1
 }) => {
@@ -48,7 +50,6 @@ export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
           
           <nav className="hidden sm:flex items-center space-x-1.5 text-xs sm:text-sm font-bold text-slate-800 ml-2">
             <button
-              id="breadcrumb-beranda-btn"
               onClick={onBack}
               className="hover:text-[#00263f] transition cursor-pointer"
             >
@@ -57,7 +58,6 @@ export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
             <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
             
             <button
-              id="breadcrumb-category-btn"
               onClick={onBack}
               className="hover:text-[#00263f] transition cursor-pointer"
             >
@@ -110,6 +110,7 @@ export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
             isAdmin={isAdmin}
             initialPage={targetSlide}
             onReplacePdf={onOpenUpload}
+            onDeletePdf={onDeletePdf ? () => onDeletePdf(cardData.id) : undefined}
             onBack={onBack}
           />
         )}
