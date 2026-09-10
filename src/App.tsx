@@ -59,7 +59,6 @@ export default function App() {
     return localStorage.getItem('kintoun_is_authenticated') === 'true';
   });
 
-  // State navigasi utama, ditambah 'ticket-catalog'
   const [currentView, setCurrentView] = useState<'home' | 'main-news' | 'category' | 'specific-news' | 'subcategory' | 'dashboard' | 'ticket-catalog'>('home');
   const [selectedCategory, setSelectedCategory] = useState<CategoryId>('customer');
   const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string>('customer-complaint');
@@ -91,17 +90,28 @@ export default function App() {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [tickets, setTickets] = useState<TicketRequest[]>([]);
 
+  // //code: State baru untuk melacak modal upload spesifik
   const [isUploadOpen, setIsUploadOpen] = useState(false);
+  const [uploadTargetType, setUploadTargetType] = useState<'main-news' | 'subcategory' | undefined>(undefined);
+  const [uploadCategoryId, setUploadCategoryId] = useState<CategoryId | undefined>(undefined);
+  const [uploadSubcategoryId, setUploadSubcategoryId] = useState<string | undefined>(undefined);
+
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isTicketOpen, setIsTicketOpen] = useState(false);
   const [isHostingerGuideOpen, setIsHostingerGuideOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // SINKRONISASI DATA DARI HOSTINGER
+  // //code: Fungsi pemanggil modal pintar
+  const handleOpenUpload = (targetType?: 'main-news' | 'subcategory', categoryId?: CategoryId, subcategoryId?: string) => {
+    setUploadTargetType(targetType);
+    setUploadCategoryId(categoryId);
+    setUploadSubcategoryId(subcategoryId);
+    setIsUploadOpen(true);
+  };
+
   const syncFromServer = useCallback(async () => {
     try {
-      // 1. AMBIL TEKS SUB-TOPIK TERBARU
       let latestSubcategories = INITIAL_SUBCATEGORIES;
       try {
         const subResponse = await fetch(`https://kintouncoffee.id/partner/api/subcategories.json?t=${Date.now()}`);
@@ -118,7 +128,6 @@ export default function App() {
         console.error("Gagal mengambil teks subkategori dari server", e);
       }
 
-      // 2. AMBIL DATA KATALOG TIKET TERBARU
       let latestTickets = INITIAL_TICKET_TEMPLATES;
       try {
         const tktResponse = await fetch(`https://kintouncoffee.id/partner/api/tickets.json?t=${Date.now()}`);
@@ -136,7 +145,6 @@ export default function App() {
       }
       setTicketTemplates(latestTickets);
 
-      // 3. AMBIL STATUS FILE PDF
       const response = await fetch(`https://kintouncoffee.id/partner/api/upload.php?t=${Date.now()}`);
       const textResponse = await response.text();
       
@@ -181,20 +189,6 @@ export default function App() {
             uploadedBy: 'Administrator Pusat',
             updatedAt: uploadDate
           };
-        } else if (payload.targetType === 'specific-news' && payload.categoryId) {
-          const catId = payload.categoryId as CategoryId;
-          if (newSpecificNews[catId]) {
-            newSpecificNews[catId] = {
-              ...newSpecificNews[catId],
-              title: payload.title,
-              pdfUrl: payload.pdfUrl,
-              pdfFileName: payload.fileName,
-              fileId: payload.id,
-              slideDeck: slideDeck,
-              uploadedBy: 'Administrator Pusat',
-              updatedAt: uploadDate
-            };
-          }
         } else if (payload.targetType === 'subcategory') {
           let subIndex = newSubcategories.findIndex(s => s.id === payload.subcategoryId);
           if (subIndex === -1 && payload.categoryId) {
@@ -291,7 +285,7 @@ export default function App() {
         timestamp: 'Baru saja',
         read: false,
         targetPage: {
-          view: payload.targetType === 'main-news' ? 'main-news' : payload.targetType === 'specific-news' ? 'specific-news' : 'subcategory',
+          view: payload.targetType === 'main-news' ? 'main-news' : 'subcategory',
           categoryId: payload.categoryId,
           subcategoryId: payload.subcategoryId
         }
@@ -388,14 +382,13 @@ export default function App() {
             }}
             onOpenSearch={() => setIsSearchOpen(true)}
             onOpenNotifications={() => setIsNotifOpen(true)}
-            onOpenUpload={() => setIsUploadOpen(true)}
+            onOpenUpload={() => handleOpenUpload()}
             onLogout={handleLogout}
             onToggleMobileSidebar={() => setIsMobileSidebarOpen(prev => !prev)}
             onGoHome={() => {
               setCurrentView('home');
               setActiveDashboard(null);
             }}
-            // -> LETAKKAN DI LUAR SINI (SEJAJAR DENGAN PROP LAINNYA)
             onOpenTicketCatalog={() => {
               setCurrentView('ticket-catalog');
               setActiveDashboard(null);
@@ -418,7 +411,6 @@ export default function App() {
                 }}
                 isMobileOpen={isMobileSidebarOpen}
                 onCloseMobile={() => setIsMobileSidebarOpen(false)}
-                // Menuju Katalog Tiket
                 onOpenTicketModal={() => {
                   setCurrentView('ticket-catalog');
                   setActiveDashboard(null);
@@ -434,7 +426,7 @@ export default function App() {
                   <HomeView
                     mainNews={mainNews}
                     subcategories={subcategories}
-                    tickets={ticketTemplates} // -> TAMBAHKAN INI
+                    tickets={ticketTemplates}
                     onSelectMainNews={() => {
                       setTargetPdfSlide(1);
                       setCurrentView('main-news');
@@ -445,8 +437,8 @@ export default function App() {
                       setCurrentView('category');
                     }}
                     onOpenTicketModal={() => setCurrentView('ticket-catalog')}
-                    onOpenUpload={() => setIsUploadOpen(true)}
-                    onUpdateTickets={(newTickets) => setTicketTemplates(newTickets)} // -> TAMBAHKAN INI
+                    onOpenUpload={() => handleOpenUpload()}
+                    onUpdateTickets={(newTickets) => setTicketTemplates(newTickets)}
                     isAdmin={role === 'admin'}
                   />
                 )}
@@ -471,7 +463,7 @@ export default function App() {
                           title={mainNews.title}
                           categoryName="PANDUAN UTAMA"
                           isAdmin={role === 'admin'}
-                          onUpload={() => setIsUploadOpen(true)}
+                          onUpload={() => handleOpenUpload('main-news')}
                           onBack={() => setCurrentView('home')}
                         />
                       ) : (
@@ -487,7 +479,7 @@ export default function App() {
                           fileSize={mainNews.pdfFileSize}
                           isAdmin={role === 'admin'}
                           initialPage={targetPdfSlide}
-                          onReplacePdf={() => setIsUploadOpen(true)}
+                          onReplacePdf={() => handleOpenUpload('main-news')}
                           onDeletePdf={() => handleDeletePdf(mainNews.fileId)}
                           onBack={() => setCurrentView('home')}
                         />
@@ -506,7 +498,13 @@ export default function App() {
                       setTargetPdfSlide(1);
                       setCurrentView('specific-news');
                     }}
-                    onOpenUpload={() => setIsUploadOpen(true)}
+                    onOpenUpload={(catId, subId) => {
+                      if (catId && subId) {
+                        handleOpenUpload('subcategory', catId as CategoryId, subId);
+                      } else {
+                        handleOpenUpload();
+                      }
+                    }}
                     onBackToHome={() => setCurrentView('home')}
                     onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
                     isAdmin={role === 'admin'}
@@ -519,7 +517,7 @@ export default function App() {
                     categoryId={selectedCategory}
                     targetSlide={targetPdfSlide}
                     onBack={() => setCurrentView('category')}
-                    onOpenUpload={() => setIsUploadOpen(true)}
+                    onOpenUpload={() => handleOpenUpload()}
                     isAdmin={role === 'admin'}
                   />
                 )}
@@ -529,7 +527,7 @@ export default function App() {
                     cardData={currentSubcategory}
                     targetSlide={targetPdfSlide}
                     onBack={() => setCurrentView('category')}
-                    onOpenUpload={() => setIsUploadOpen(true)}
+                    onOpenUpload={() => handleOpenUpload('subcategory', selectedCategory, selectedSubcategoryId)}
                     onDeletePdf={(subId) => handleDeletePdf(subcategories.find(s => s.id === subId)?.fileId)}
                     isAdmin={role === 'admin'}
                   />
@@ -543,7 +541,6 @@ export default function App() {
                   />
                 )}
 
-                {/* HALAMAN KATALOG TIKET BARU */}
                 {currentView === 'ticket-catalog' && (
                   <TicketCatalogView 
                     tickets={ticketTemplates} 
@@ -560,6 +557,9 @@ export default function App() {
             isOpen={isUploadOpen}
             onClose={() => setIsUploadOpen(false)}
             onUploadSuccess={handleUploadSuccess}
+            initialTargetType={uploadTargetType}
+            initialCategoryId={uploadCategoryId}
+            initialSubcategoryId={uploadSubcategoryId}
           />
           <NotificationModal
             isOpen={isNotifOpen}
@@ -585,7 +585,6 @@ export default function App() {
             onNavigateToMainNews={handleNavigateToMainNews}
             onNavigateToSpecificNews={handleNavigateToSpecificNews}
           />
-          {/* TicketModal yang lama tetap dipasang untuk input form jika nanti digunakan */}
           <TicketModal
             isOpen={isTicketOpen}
             onClose={() => setIsTicketOpen(false)}
