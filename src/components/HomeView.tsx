@@ -49,7 +49,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
    
   const [editingTicket, setEditingTicket] = useState<TicketTemplate | null>(null);
   const [isAddingNewTicket, setIsAddingNewTicket] = useState(false);
-  const [showIconPicker, setShowIconPicker] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
   React.useEffect(() => {
@@ -118,7 +117,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
         onUpdateTickets(updatedList);
         setEditingTicket(null);
         setIsAddingNewTicket(false);
-        setShowIconPicker(false);
       } else {
         alert(result.message || 'Gagal menyimpan tiket.');
       }
@@ -161,13 +159,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   const handleOpenAddNewTicket = () => {
     setIsAddingNewTicket(true);
-    setShowIconPicker(false);
     setEditingTicket({
       id: `tkt_${Date.now()}`,
       title: '',
       description: '',
       iconName: 'file-text',
-      // Mengisi default field lama agar tidak error tipe data
       department: '',
       sla: '',
       badgeColor: '',
@@ -337,13 +333,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
           })}
         </section>
 
-        {/* KATALOG TIKET & ESKALASI (LINK EKSTERNAL) */}
+        {/* ESKALASI TIKET */}
         <section className="mb-16 pt-8 border-t border-[#d6cfbf]/60">
           <div className="mb-6 px-1">
-            <h2 className="text-2xl sm:text-3xl font-black text-[#00263f] uppercase tracking-tight mb-1">
-              KATALOG TIKET & FORM
+            <h2 className="font-poppins text-2xl sm:text-4xl font-bold text-[#00263f] capitalize tracking-tight mb-2">
+              ESKALASI TIKET
             </h2>
-            <p className="text-xs sm:text-sm text-slate-600 font-medium">
+            <p className="font-poppins text-xs sm:text-sm text-slate-600 font-medium">
               Pilih akses form di bawah ini untuk mengajukan permintaan atau laporan operasional.
             </p>
           </div>
@@ -351,7 +347,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {tickets.map((ticket) => {
               const TicketIcon = getIconComponent(ticket.iconName);
-              // //code: Ekstraksi URL (Tautan Tally/GForm) dengan tipe as any agar tidak error di Typescript
               const ticketUrl = (ticket as any).url || '#';
 
               return (
@@ -366,7 +361,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
                     </button>
                   )}
                   <div>
-                    {/* //code: Tambahkan items-center di sini agar posisinya pas di tengah vertikal */}
                     <div className="flex items-center gap-3 mb-3 pr-8">
                       <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0">
                         <TicketIcon className="w-5 h-5" />
@@ -405,7 +399,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </section>
       </div>
 
-      {/* MODAL EDIT KATEGORI TETAP SAMA */}
+      {/* MODAL EDIT KATEGORI */}
       {editingCategory && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl animate-in fade-in duration-200">
@@ -474,7 +468,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
         </div>
       )}
 
-      {/* MODAL EDIT / TAMBAH TIKET (DISEDERHANAKAN UNTUK LINK EKSTERNAL) */}
+      {/* MODAL EDIT / TAMBAH TIKET */}
       {editingTicket && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl">
@@ -509,7 +503,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </div>
               
               <div>
-                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Tautan Link Tiket (URL Eksternal)</label>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Link Form / Tiket</label>
                 <input 
                   type="url" 
                   placeholder="Contoh: https://tally.so/r/..." 
