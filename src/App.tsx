@@ -395,6 +395,11 @@ export default function App() {
               setCurrentView('home');
               setActiveDashboard(null);
             }}
+            // -> LETAKKAN DI LUAR SINI (SEJAJAR DENGAN PROP LAINNYA)
+            onOpenTicketCatalog={() => {
+              setCurrentView('ticket-catalog');
+              setActiveDashboard(null);
+            }}
           />
 
           <main className="flex-1 flex flex-col">
