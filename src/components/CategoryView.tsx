@@ -45,7 +45,8 @@ interface CategoryViewProps {
   specificNews: NewsArticle;
   onSelectSubcategory: (subcatId: string) => void;
   onSelectNews: () => void;
-  onOpenUpload: () => void;
+  // //code: Props onOpenUpload sekarang menerima argumen
+  onOpenUpload: (catId?: string, subId?: string) => void;
   onBackToHome: () => void;
   isAdmin: boolean;
   onOpenMobileSidebar?: () => void;
@@ -217,7 +218,7 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
                 key={subcat.id} 
                 onClick={() => {
                   if (isContentEmpty && isAdmin) {
-                    onOpenUpload();
+                    onOpenUpload(categoryId, subcat.id);
                   } else if (!isContentEmpty) {
                     onSelectSubcategory(subcat.id);
                   }
@@ -249,7 +250,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
                 </div>
                 <p className="text-xs text-slate-600 font-medium leading-relaxed line-clamp-3 mb-4">{subcat.description}</p>
                 
-                {/* LOGIKA TAMPILAN BUTTON (Pojok Kanan Bawah & Warna Flat Abu-abu) */}
                 <div className="mt-auto pt-4 border-t border-slate-100 flex justify-end items-center">
                   {!isContentEmpty ? (
                     <button 
@@ -266,7 +266,8 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
-                        onOpenUpload();
+                        // //code: Melempar ID spesifik agar modal pintar membaca tujuannya
+                        onOpenUpload(categoryId, subcat.id);
                       }}
                       className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-300 border border-slate-200 text-slate-750 hover:bg-slate-200 hover:text-slate-800 transition flex items-center gap-1.5 cursor-pointer"
                     >
