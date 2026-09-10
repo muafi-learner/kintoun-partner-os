@@ -297,8 +297,11 @@ export default function App() {
   const handleDeletePdf = async (targetFileId?: string) => {
     try {
       const fileIdToDelete = targetFileId || mainNews.fileId;
+      
+      // Jika tidak ada ID, langsung reset tampilan ke home/kosong secara lokal
       if (!fileIdToDelete) {
-        alert('ID dokumen tidak ditemukan.');
+        syncFromServer(); 
+        setCurrentView('home'); 
         return;
       }
 
@@ -309,15 +312,16 @@ export default function App() {
       });
 
       const result = await response.json();
-      if (result.status === 'success') {
-        syncFromServer(); 
-        setCurrentView('home'); 
-      } else {
-        alert(result.message || 'Gagal menghapus dokumen.');
-      }
+      
+      // Baik sukses dari server maupun file sudah telat/tidak ada, paksa sinkron ulang & pulang
+      syncFromServer(); 
+      setCurrentView('home'); 
+      
     } catch (err) {
       console.error("Gagal menghapus dokumen ke server", err);
-      alert('Koneksi ke server terputus.');
+      // Jika koneksi/server error, tetap paksa refresh state lokal agar user tidak terjebak
+      syncFromServer();
+      setCurrentView('home');
     }
   };
 
