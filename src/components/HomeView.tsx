@@ -327,15 +327,13 @@ export const HomeView: React.FC<HomeViewProps> = ({
           <p className="text-xs sm:text-sm text-slate-500 mb-6 sm:mb-8 px-2 leading-relaxed">
             Jika terjadi kerusakan darurat pada mesin, atau kondisi operasional yang membutuhkan penanganan langsung dari teknisi Kintoun, gunakan portal khusus eskalasi ini.
           </p>
-          <a
-            href="https://helpdesk.kintouncoffee.id"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-6 py-3 sm:py-3.5 rounded-xl bg-[#00263f] hover:bg-[#3c586d] text-white font-black text-xs tracking-wider uppercase transition shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0"
+          <button
+            onClick={onOpenTicketModal}
+            className="inline-flex items-center gap-2 px-6 py-3 sm:py-3.5 rounded-xl bg-[#00263f] hover:bg-[#3c586d] text-white font-black text-xs tracking-wider uppercase transition shadow-md hover:shadow-lg hover:-translate-y-0.5 active:translate-y-0 cursor-pointer"
           >
-            <span>Hubungi Bantuan Teknisi</span>
-            <ExternalLink className="w-4 h-4" />
-          </a>
+            <span>Buka Katalog Tiket</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
         </section>
       </div>
     </div>
