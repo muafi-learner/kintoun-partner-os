@@ -2,9 +2,9 @@ import React, { useState, useMemo } from 'react';
 import { 
   ArrowRight, ChevronRight, ExternalLink, 
   Search, Users, Coffee, Wrench, UserCheck, PackageCheck, Store, 
-  X, Layers, LifeBuoy
+  X, Layers, LifeBuoy, Edit3, Save, Check
 } from 'lucide-react';
-import { CategoryId, NewsArticle } from '../types';
+import { CategoryId, NewsArticle, CategoryConfig } from '../types';
 import { CATEGORIES } from '../data/initialData';
 
 interface HomeViewProps {
@@ -20,8 +20,57 @@ export const HomeView: React.FC<HomeViewProps> = ({
   mainNews,
   onSelectMainNews,
   onSelectCategory,
+  isAdmin,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // State untuk data kategori yang bisa diedit secara lokal/server
+  const [categoriesList, setCategoriesList] = useState<CategoryConfig[]>(CATEGORIES);
+  const [editingCategory, setEditingCategory] = useState<CategoryConfig | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Ambil data kategori terbaru dari server saat pertama kali dimuat
+  React.useEffect(() => {
+    fetch('https://kintouncoffee.id/partner/api/categories.json')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          setCategoriesList(data);
+        }
+      })
+      .catch(err => console.error("Gagal memuat kategori dari server", err));
+  }, []);
+
+  const handleSaveCategoryEdit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCategory) return;
+
+    setIsSaving(true);
+    try {
+      const updatedList = categoriesList.map(cat => 
+        cat.id === editingCategory.id ? editingCategory : cat
+      );
+
+      const response = await fetch('https://kintouncoffee.id/partner/api/update-categories.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ categories: updatedList })
+      });
+
+      const result = await response.json();
+      if (result.status === 'success') {
+        setCategoriesList(updatedList);
+        setEditingCategory(null);
+      } else {
+        alert(result.message || 'Gagal menyimpan perubahan.');
+      }
+    } catch (error) {
+      console.error("Gagal terhubung ke server", error);
+      alert('Koneksi ke server terputus.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const renderCategoryIcon = (iconName: string) => {
     const iconClass = "w-6 h-6 shrink-0";
@@ -37,20 +86,20 @@ export const HomeView: React.FC<HomeViewProps> = ({
   };
 
   const filteredCategories = useMemo(() => {
-    if (!searchQuery.trim()) return CATEGORIES;
+    if (!searchQuery.trim()) return categoriesList;
     const q = searchQuery.toLowerCase();
-    return CATEGORIES.filter((cat) => {
+    return categoriesList.filter((cat) => {
       const matchName = cat.name.toLowerCase().includes(q);
       const matchTagline = cat.tagline?.toLowerCase().includes(q);
       const matchItems = cat.items.some((item) => item.toLowerCase().includes(q));
       return matchName || matchTagline || matchItems;
     });
-  }, [searchQuery]);
+  }, [searchQuery, categoriesList]);
 
   return (
     <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-47 sm:py-51 font-sans min-h-full flex flex-col justify-between">
       <div>
-        {/* HERO SECTION - Teks "Welcome to KINTOUN Partner!" */}
+        {/* HERO SECTION */}
         <section className="mb-41 sm:mb-45 px-2 max-w-3xl">
           <h1 className="font-poppins text-4xl sm:text-6xl lg:text-7xl text-[#00263f] leading-[1.1] mb-6">
             <span className="font-medium">Welcome to</span><br />
@@ -61,8 +110,14 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </p>
         </section>
 
-        {/* SECTION PANDUAN UTAMA (Main News) DENGAN LABEL RECENT UPDATE */}
+        {/* SECTION RECENT UPDATE */}
         <section className="mb-10 sm:mb-14">
+          <div className="flex items-center gap-2 mb-3 px-1">
+            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+            <h3 className="text-xs font-black uppercase tracking-wider text-slate-500">
+              Recent Update
+            </h3>
+          </div>
           <div
             id="main-news-banner"
             onClick={onSelectMainNews}
@@ -79,10 +134,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </p>
             </div>
             
-            {/* Action Bar (Bawah) */}
             <div className="flex flex-wrap items-center justify-between pt-4 mt-4 border-t border-slate-100 text-xs gap-3">
-              <div className="flex items-center gap-3">
-              </div>
+              <div className="flex items-center gap-3"></div>
               <span className="inline-flex items-center gap-1.5 text-[#00263f] font-bold text-xs group-hover:translate-x-1 transition">
                 Buka Materi <ArrowRight className="w-3.5 h-3.5" />
               </span>
@@ -120,10 +173,24 @@ export const HomeView: React.FC<HomeViewProps> = ({
             <div
               key={cat.id}
               onClick={() => onSelectCategory(cat.id)}
-              className="group bg-white hover:bg-[#fdfcfb] rounded-2xl p-5 sm:p-6 border border-[#d6cfbf] hover:border-[#b8ad98] flex flex-col justify-between cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-lg shadow-xs min-h-[330px] select-none"
+              className="group relative bg-white hover:bg-[#fdfcfb] rounded-2xl p-5 sm:p-6 border border-[#d6cfbf] hover:border-[#b8ad98] flex flex-col justify-between cursor-pointer transition-all duration-200 hover:-translate-y-1 hover:shadow-lg shadow-xs min-h-[330px] select-none"
             >
+              {/* TOMBOL EDIT KATEGORI KHUSUS ADMIN */}
+              {isAdmin && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setEditingCategory(cat);
+                  }}
+                  className="absolute top-4 right-4 p-2 rounded-lg bg-slate-100 hover:bg-amber-400 text-slate-600 hover:text-slate-950 transition shadow-xs z-10 cursor-pointer"
+                  title="Edit Judul Kategori"
+                >
+                  <Edit3 className="w-3.5 h-3.5" />
+                </button>
+              )}
+
               <div>
-                <div className="flex items-center gap-3 mb-3">
+                <div className="flex items-center gap-3 mb-3 pr-8">
                   <div className={`p-2.5 sm:p-3 rounded-xl border ${cat.accentLight} shadow-2xs shrink-0`}>
                     {renderCategoryIcon(cat.iconName)}
                   </div>
@@ -171,21 +238,77 @@ export const HomeView: React.FC<HomeViewProps> = ({
               </button>
             </div>
           ))}
-          {filteredCategories.length === 0 && (
-            <div className="col-span-full py-12 text-center bg-white rounded-2xl border border-dashed border-slate-300 p-8">
-              <p className="text-sm font-bold text-slate-600">
-                Tidak ada panduan yang cocok dengan pencarian "{searchQuery}"
-              </p>
-              <button
-                onClick={() => setSearchQuery('')}
-                className="mt-4 px-4 py-2 bg-[#00263f] hover:bg-[#3c586d] text-white rounded-xl text-xs font-bold transition cursor-pointer"
-              >
-                Reset Pencarian
-              </button>
-            </div>
-          )}
         </section>
       </div>
+
+      {/* MODAL EDIT KATEGORI */}
+      {editingCategory && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl animate-in fade-in duration-200">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-base font-black text-[#00263f] uppercase">Edit Kategori: {editingCategory.id}</h3>
+              <button onClick={() => setEditingCategory(null)} className="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveCategoryEdit} className="space-y-4">
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Judul Kategori (Name)</label>
+                <input
+                  type="text"
+                  value={editingCategory.name}
+                  onChange={(e) => setEditingCategory({ ...editingCategory, name: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#00263f]"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Tagline / Keterangan Singkat</label>
+                <input
+                  type="text"
+                  value={editingCategory.tagline || ''}
+                  onChange={(e) => setEditingCategory({ ...editingCategory, tagline: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#00263f]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Teks Tombol Aksi (Solve Button)</label>
+                <input
+                  type="text"
+                  value={editingCategory.solveButtonText}
+                  onChange={(e) => setEditingCategory({ ...editingCategory, solveButtonText: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs font-semibold focus:outline-none focus:ring-2 focus:ring-[#00263f]"
+                  required
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-4 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setEditingCategory(null)}
+                  className="px-4 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition cursor-pointer"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSaving}
+                  className="px-5 py-2 rounded-xl text-xs font-black bg-[#00263f] hover:bg-[#3c586d] text-white transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
+                >
+                  {isSaving ? 'Menyimpan...' : (
+                    <>
+                      <Check className="w-4 h-4" /> Simpan Perubahan
+                    </>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* SECTION BANTUAN TEKNISI STATIS DI TENGAH BAWAH */}
       <div className="snap-start snap-always shrink-0 pt-[160px] pb-[20px]">
