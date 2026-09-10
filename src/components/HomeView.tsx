@@ -43,10 +43,10 @@ export const HomeView: React.FC<HomeViewProps> = ({
   isAdmin,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  
+   
   const [categoriesList, setCategoriesList] = useState<CategoryConfig[]>(CATEGORIES);
   const [editingCategory, setEditingCategory] = useState<CategoryConfig | null>(null);
-  
+   
   // State untuk Edit/Add Tiket langsung di Homepage
   const [editingTicket, setEditingTicket] = useState<TicketTemplate | null>(null);
   const [isAddingNewTicket, setIsAddingNewTicket] = useState(false);
@@ -202,10 +202,11 @@ export const HomeView: React.FC<HomeViewProps> = ({
   }, [searchQuery, categoriesList, subcategories]);
 
   return (
-    <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 font-sans min-h-full flex flex-col justify-between">
+    <div className="relative w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-30 font-sans min-h-full flex flex-col justify-between">
       <div>
         {/* HERO SECTION */}
-        <section className="mb-12 px-2 max-w-3xl">
+        {/* //code: Ubah nilai mb-12 di bawah ini untuk mengatur jarak kuning */}
+        <section className="mb-32 px-2 max-w-3xl">
           <h1 className="font-poppins text-4xl sm:text-6xl lg:text-7xl text-[#00263f] leading-[1.1] mb-6">
             <span className="font-medium">Welcome to</span><br />
             <span className="font-black tracking-tight uppercase">KINTOUN</span> <span className="font-medium">Partner!</span>
@@ -217,6 +218,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
         {/* RECENT UPDATE */}
         <section className="mb-10 sm:mb-14">
+          {/* //code: Ubah nilai mb-3 di bawah ini untuk mengatur jarak merah */}
           <div className="flex items-center gap-2 mb-3 px-1">
             <span className="w-2 h-2 rounded-full bg-amber-500"></span>
             <h3 className="text-xs font-black uppercase tracking-wider text-slate-500">
@@ -490,7 +492,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 <X className="w-5 h-5" />
               </button>
             </div>
-            
+             
             <form onSubmit={handleSaveTicket} className="space-y-4">
               <div>
                 <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Departemen (Label)</label>
