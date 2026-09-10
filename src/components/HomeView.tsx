@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { 
-  ArrowRight, ChevronRight, FileText, ExternalLink, 
+  ArrowRight, ChevronRight, ExternalLink, 
   Search, Users, Coffee, Wrench, UserCheck, PackageCheck, Store, 
   X, Layers, LifeBuoy
 } from 'lucide-react';
@@ -20,7 +20,6 @@ export const HomeView: React.FC<HomeViewProps> = ({
   mainNews,
   onSelectMainNews,
   onSelectCategory,
-  isAdmin
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -62,21 +61,21 @@ export const HomeView: React.FC<HomeViewProps> = ({
           </p>
         </section>
 
-        {/* SECTION PANDUAN UTAMA (Main News) */}
+        {/* SECTION PANDUAN UTAMA (Main News) DENGAN LABEL RECENT UPDATE */}
         <section className="mb-10 sm:mb-14">
+          <div className="flex items-center gap-2 mb-3 px-1">
+            <span className="w-2 h-2 rounded-full bg-amber-500"></span>
+            <h3 className="text-xs font-black uppercase tracking-wider text-slate-500">
+              Recent Update
+            </h3>
+          </div>
           <div
             id="main-news-banner"
             onClick={onSelectMainNews}
             className="group relative w-full rounded-2xl bg-white hover:bg-slate-50/90 border border-[#d6cfbf] p-6 sm:p-8 cursor-pointer transition-all duration-200 shadow-sm hover:shadow-md flex flex-col justify-between overflow-hidden"
           >
             <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#00263f] via-[#3c586d] to-[#908371]"></div>
-            {isAdmin && (
-              <div className="flex justify-end mb-2">
-                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-amber-200 text-amber-900 border border-amber-300">
-                  Admin Editable
-                </span>
-              </div>
-            )}
+            
             <div className="py-2 max-w-4xl">
               <h2 className="text-lg sm:text-xl font-black text-[#00263f] transition leading-snug mb-2">
                 {mainNews.title}
