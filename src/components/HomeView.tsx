@@ -321,10 +321,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                             }`}
                           >
                             <div className="flex items-center gap-2 truncate">
-                              <span 
-                                className="w-1.5 h-1.5 rounded-full shrink-0" 
-                                style={{ backgroundColor: cat.colorHex }}
-                              />
+                              <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-slate-300" />
                               <span className="truncate">{module.title}</span>
                             </div>
                             <ChevronRight className="w-3.5 h-3.5 text-slate-300 group-hover:text-slate-500 shrink-0" />
@@ -336,8 +333,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 </div>
                 <button
                   type="button"
-                  className="w-full py-2.5 px-4 rounded-xl text-xs font-black text-white transition flex items-center justify-between shadow-xs group-hover:brightness-105 active:scale-[0.98] mt-2 cursor-pointer"
-                  style={{ backgroundColor: cat.colorHex }}
+                  className="w-full py-2.5 px-4 rounded-xl text-xs font-black text-white bg-[#00263f] hover:bg-[#3c586d] transition flex items-center justify-between shadow-xs active:scale-[0.98] mt-2 cursor-pointer"
                 >
                   <span className="tracking-wider uppercase">{cat.solveButtonText}</span>
                   <ArrowRight className="w-4 h-4 shrink-0 transition-transform group-hover:translate-x-1" />
