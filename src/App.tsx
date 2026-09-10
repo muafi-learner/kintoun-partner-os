@@ -93,7 +93,7 @@ export default function App() {
   const [isHostingerGuideOpen, setIsHostingerGuideOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // SINKRONISASI DATA DARI HOSTINGER
+  // SINKRONISASI DATA DARI HOSTINGER (YANG DISEMPURNAKAN)
   const syncFromServer = useCallback(async () => {
     try {
       const response = await fetch('https://kintouncoffee.id/partner/api/upload.php');
@@ -101,7 +101,6 @@ export default function App() {
       
       if (!Array.isArray(items)) return;
 
-      // Jika database kosong di server, kembalikan ke status awal (bersih)
       if (items.length === 0) {
         setMainNews(INITIAL_MAIN_NEWS);
         setSpecificNews(INITIAL_SPECIFIC_NEWS);
@@ -139,18 +138,26 @@ export default function App() {
           };
         } else if (payload.targetType === 'specific-news' && payload.categoryId) {
           const catId = payload.categoryId as CategoryId;
-          newSpecificNews[catId] = {
-            ...newSpecificNews[catId],
-            title: payload.title,
-            pdfUrl: payload.pdfUrl,
-            pdfFileName: payload.fileName,
-            fileId: payload.id,
-            slideDeck: slideDeck,
-            uploadedBy: 'Administrator Pusat',
-            updatedAt: uploadDate
-          };
-        } else if (payload.targetType === 'subcategory' && payload.subcategoryId) {
-          const subIndex = newSubcategories.findIndex(s => s.id === payload.subcategoryId);
+          if (newSpecificNews[catId]) {
+            newSpecificNews[catId] = {
+              ...newSpecificNews[catId],
+              title: payload.title,
+              pdfUrl: payload.pdfUrl,
+              pdfFileName: payload.fileName,
+              fileId: payload.id,
+              slideDeck: slideDeck,
+              uploadedBy: 'Administrator Pusat',
+              updatedAt: uploadDate
+            };
+          }
+        } else if (payload.targetType === 'subcategory') {
+          // Cari subkategori berdasarkan subcategoryId, atau fallback ke kategori utama jika tidak spesifik
+          let subIndex = newSubcategories.findIndex(s => s.id === payload.subcategoryId);
+          if (subIndex === -1 && payload.categoryId) {
+            // Jika subcategoryId tidak cocok, ambil subkategori pertama yang memiliki categoryId sama
+            subIndex = newSubcategories.findIndex(s => s.categoryId === payload.categoryId);
+          }
+
           if (subIndex > -1) {
             newSubcategories[subIndex] = {
               ...newSubcategories[subIndex],
