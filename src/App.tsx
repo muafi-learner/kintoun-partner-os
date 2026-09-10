@@ -434,6 +434,7 @@ export default function App() {
                   <HomeView
                     mainNews={mainNews}
                     subcategories={subcategories}
+                    tickets={ticketTemplates} // -> TAMBAHKAN INI
                     onSelectMainNews={() => {
                       setTargetPdfSlide(1);
                       setCurrentView('main-news');
@@ -445,6 +446,7 @@ export default function App() {
                     }}
                     onOpenTicketModal={() => setCurrentView('ticket-catalog')}
                     onOpenUpload={() => setIsUploadOpen(true)}
+                    onUpdateTickets={(newTickets) => setTicketTemplates(newTickets)} // -> TAMBAHKAN INI
                     isAdmin={role === 'admin'}
                   />
                 )}
