@@ -31,7 +31,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
 
   // Ambil data kategori terbaru dari server saat pertama kali dimuat
   React.useEffect(() => {
-    fetch('https://kintouncoffee.id/partner/api/categories.json')
+    fetch('https://kintouncoffee.id/partner/api/get-categories.php')
       .then(res => res.json())
       .then(data => {
         if (Array.isArray(data) && data.length > 0) {
