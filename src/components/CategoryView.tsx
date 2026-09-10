@@ -1,19 +1,18 @@
 import React, { useState, useMemo } from 'react';
 import { 
-  FileText, Search, X, Users, Coffee, Wrench, 
+  Search, X, Users, Coffee, Wrench, 
   UserCheck, PackageCheck, Store, Layers, BookOpen, 
   MessageSquareWarning, HeartHandshake, Smile, PhoneCall, ClipboardEdit, 
   AlertOctagon, Utensils, Hammer, Settings, Droplets, Cpu, Clock, 
   Calendar, TrendingUp, AlertCircle, ShoppingCart, Truck, Trash2, 
   CheckSquare, DoorOpen, CreditCard, ShieldCheck, CheckCircle2, 
   PlusCircle, ExternalLink, Boxes, Sparkles, ArrowLeft, LifeBuoy, 
-  Edit3, Check, HelpCircle, Info, Monitor, Smartphone, Camera, FileQuestion
+  Edit3, Check, HelpCircle, Info, Monitor, Smartphone, Camera, FileText
 } from 'lucide-react';
 import { CategoryId, SubcategoryCard, NewsArticle } from '../types';
 import { CATEGORIES } from '../data/initialData';
 import { isSubcategoryUploaded } from '../utils/uploadStatus';
 
-// 1. DAFTAR 24 IKON UNIVERSAL UNTUK SOP & OPERASIONAL F&B
 const AVAILABLE_ICONS = [
   'book-open', 'coffee', 'users', 'wrench', 'alert-octagon', 
   'message-square-warning', 'clipboard-edit', 'check-square', 
@@ -23,7 +22,6 @@ const AVAILABLE_ICONS = [
   'help-circle', 'info', 'monitor', 'camera'
 ];
 
-// 2. MAPPING IKON KE KOMPONEN LUCIDE REACT
 const IconMap: Record<string, React.ElementType> = {
   'message-square-warning': MessageSquareWarning, 'heart-handshake': HeartHandshake, 'smile': Smile,
   'phone-call': PhoneCall, 'clipboard-edit': ClipboardEdit, 'coffee': Coffee, 'check-circle-2': CheckCircle2,
@@ -38,7 +36,7 @@ const IconMap: Record<string, React.ElementType> = {
 
 const getIconComponent = (iconName?: string): React.ElementType => {
   if (iconName && IconMap[iconName]) return IconMap[iconName];
-  return BookOpen; // Fallback icon default
+  return BookOpen;
 };
 
 interface CategoryViewProps {
@@ -62,7 +60,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   
-  // State untuk menampilkan/menyembunyikan pilihan ikon
   const [showIconPicker, setShowIconPicker] = useState(false);
 
   React.useEffect(() => {
@@ -80,7 +77,7 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
 
   const handleOpenAddNew = () => {
     setIsAddingNew(true);
-    setShowIconPicker(false); // Tutup picker saat membuat baru
+    setShowIconPicker(false);
     setEditingSubcat({
       id: `modul_${Date.now()}`,
       categoryId: categoryId,
@@ -217,7 +214,7 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
               <div 
                 key={subcat.id} 
                 onClick={() => onSelectSubcategory(subcat.id)} 
-                className="group relative bg-white hover:bg-[#fdfcfb] rounded-2xl p-5 sm:p-6 border border-[#e2dfd5] hover:border-[#b8ad98] shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between min-h-[220px]"
+                className="group relative bg-white hover:bg-[#fdfcfb] rounded-2xl p-5 sm:p-6 border border-[#e2dfd5] hover:border-[#b8ad98] shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between min-h-[190px]"
               >
                 {isAdmin && (
                   <button
@@ -235,30 +232,17 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
                 )}
 
                 <div>
-                  <div className="flex items-start gap-3 mb-3 pr-6">
-                    {/* DESAIN IKON FLAT & SERAGAM */}
+                  <div className="flex items-center gap-3 mb-4 pr-6">
                     <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 bg-slate-100 border border-slate-200 text-slate-600 shadow-2xs">
                       <SubcatIcon className="w-5 h-5 shrink-0" />
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="text-xs sm:text-sm font-black text-slate-900 uppercase truncate">{subcat.title}</h4>
-                      <div className="mt-1">
-                        {uploaded ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-extrabold bg-emerald-50 text-emerald-700 border border-emerald-200 uppercase"><CheckCircle2 className="w-3 h-3" />Tersedia</span>
-                        ) : isAdmin ? (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-extrabold bg-amber-100 text-amber-900 border border-amber-300 uppercase"><AlertCircle className="w-3 h-3" />Perlu Diisi</span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200 uppercase"><Clock className="w-3 h-3" />Belum Diisi</span>
-                        )}
-                      </div>
                     </div>
                   </div>
                   <p className="text-xs text-slate-600 font-medium leading-relaxed mb-4 line-clamp-3">{subcat.description}</p>
                 </div>
-                <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5"><FileText className="w-3.5 h-3.5" />{uploaded ? 'Dokumen PDF' : 'Belum Ada File'}</span>
-                  
-                  {/* DESAIN TOMBOL AKSI FLAT & SERAGAM */}
+                <div className="pt-3 border-t border-slate-100 flex items-center justify-end">
                   <button className={`px-3.5 py-1.5 rounded-lg text-xs font-extrabold flex items-center gap-1.5 cursor-pointer ${uploaded ? 'bg-[#00263f] text-white shadow-2xs hover:bg-[#3c586d]' : isAdmin ? 'bg-amber-400 text-slate-950 hover:bg-amber-300 shadow-2xs' : 'bg-slate-100 text-slate-500'}`}>
                     <span>{uploaded ? 'Pelajari' : isAdmin ? 'Isi Materi' : 'Belum Diisi'}</span>
                   </button>
@@ -268,7 +252,7 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
           })}
 
           {isAdmin && (
-            <div onClick={handleOpenAddNew} className="border-2 border-dashed border-amber-300 bg-amber-50/40 hover:bg-amber-50 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition min-h-[220px]">
+            <div onClick={handleOpenAddNew} className="border-2 border-dashed border-amber-300 bg-amber-50/40 hover:bg-amber-50 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition min-h-[190px]">
               <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mb-2.5 shadow-2xs"><PlusCircle className="w-5 h-5" /></div>
               <h4 className="text-xs font-black text-amber-900 uppercase">Tambah Modul Baru</h4>
               <p className="text-[11px] text-amber-700 mt-1 max-w-xs leading-relaxed">Buat kartu sub-topik baru secara manual</p>
@@ -277,7 +261,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
         </div>
       </div>
 
-      {/* MODAL ADD/EDIT KARTU SUB-TOPIK DENGAN TOGGLE ICON PICKER */}
       {editingSubcat && (
         <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
           <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl animate-in fade-in duration-200">
@@ -311,7 +294,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
                 />
               </div>
 
-              {/* BAGIAN PEMILIHAN IKON (TOGGLE UI) */}
               <div>
                 <label className="block text-[11px] font-bold text-slate-500 uppercase mb-2">Ikon Kartu</label>
                 <div className="flex items-center gap-3">
@@ -339,7 +321,7 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
                             type="button"
                             onClick={() => {
                               setEditingSubcat({ ...editingSubcat, iconName: icon });
-                              setShowIconPicker(false); // Otomatis tutup setelah milih
+                              setShowIconPicker(false);
                             }}
                             className={`p-2 rounded-lg border flex items-center justify-center transition-all cursor-pointer ${
                               isSelected 
@@ -357,7 +339,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
                 )}
               </div>
 
-              {/* FOOTER MODAL */}
               <div className="flex items-center justify-between pt-4 border-t border-slate-100 mt-6">
                 {!isAddingNew ? (
                   <button
@@ -398,7 +379,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
         </div>
       )}
 
-      {/* SECTION BANTUAN TEKNISI STATIS DI TENGAH BAWAH */}
       <section className="mt-8 mb-12 sm:mb-16 w-full max-w-2xl mx-auto text-center bg-white rounded-3xl border border-[#d6cfbf] p-6 sm:p-10 shadow-sm">
         <div className="flex justify-center mb-4">
           <div className="w-10 h-10 rounded-full bg-[#eeebe1] flex items-center justify-center">
