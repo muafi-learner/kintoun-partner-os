@@ -4,6 +4,10 @@ import {
   AlertCircle, FolderOpen
 } from 'lucide-react';
 import { CategoryId } from '../types';
+import * as pdfjsLib from 'pdfjs-dist';
+
+// Menggunakan CDN untuk worker agar tidak bentrok dengan konfigurasi Vite/React Anda
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 
 interface AdminUploadModalProps {
   isOpen: boolean;
@@ -20,6 +24,7 @@ interface AdminUploadModalProps {
     fileSize: string;
     thumbnailUrl?: string;
     notifyUsers: boolean;
+    extractedText?: string;
   }) => void;
 }
 
@@ -40,6 +45,7 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
   
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [processingStatus, setProcessingStatus] = useState('Mengunggah ke Hostinger...');
   const [errorMessage, setErrorMessage] = useState('');
 
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -94,11 +100,37 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
     setErrorMessage('');
 
     try {
-      // 1. Bungkus file mentah ke FormData
+      let extractedText = '';
+      
+      // 1. Proses Ekstraksi Teks PDF (Client-Side Parsing)
+      if (file.name.toLowerCase().endsWith('.pdf')) {
+        setProcessingStatus('Memindai & mengekstrak teks PDF...');
+        try {
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          
+          // Batasi maksimal 20 halaman agar memori admin tidak overload
+          const maxPages = Math.min(pdf.numPages, 20); 
+          for (let i = 1; i <= maxPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items.map((item: any) => item.str).join(' ');
+            extractedText += pageText + ' ';
+          }
+        } catch (extractErr) {
+          console.warn('Gagal mengekstrak teks, melanjutkan tanpa deep-search:', extractErr);
+        }
+      }
+
+      setProcessingStatus('Mengirim data ke server Hostinger...');
+
+      // 2. Bungkus file mentah dan teks hasil ekstraksi ke FormData
       const formData = new FormData();
       formData.append('file', file);
       formData.append('title', title.trim());
       formData.append('targetType', targetType);
+      formData.append('extractedText', extractedText.trim()); // Teks yang diekstrak dikirim ke backend
+      
       if (targetType !== 'main-news') {
         formData.append('categoryId', selectedCategory);
       }
@@ -106,7 +138,7 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
         formData.append('subcategoryId', selectedSubcategory);
       }
 
-      // 2. Tembak langsung ke API Hostinger Anda
+      // 3. Tembak langsung ke API Hostinger Anda
       const response = await fetch('https://kintouncoffee.id/partner/api/upload.php', {
         method: 'POST',
         body: formData,
@@ -124,7 +156,7 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
 
       const formattedSize = (file.size / (1024 * 1024)).toFixed(1) + ' MB';
 
-      // 3. Update UI dengan URL asli dari Hostinger
+      // 4. Update UI dengan URL asli dari Hostinger
       onUploadSuccess({
         targetType,
         categoryId: targetType !== 'main-news' ? selectedCategory : undefined,
@@ -132,11 +164,12 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
         title: title.trim(),
         subtitle: subtitle.trim() || 'Modul Operasional Resmi Kintoun 2026',
         summary: summary.trim() || `Diunggah oleh Administrator pada ${new Date().toLocaleDateString('id-ID')}`,
-        pdfUrl: result.fileUrl, // <-- File dipanggil langsung dari server
+        pdfUrl: result.fileUrl,
         fileName: file.name,
         fileSize: formattedSize,
         thumbnailUrl: thumbnailPreview,
-        notifyUsers
+        notifyUsers,
+        extractedText: extractedText.trim()
       });
 
       onClose();
@@ -145,6 +178,7 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
       setErrorMessage(err.message || 'Koneksi terputus. Pastikan file upload.php sudah ada di Hostinger.');
     } finally {
       setIsProcessing(false);
+      setProcessingStatus('Mengunggah ke Hostinger...');
     }
   };
 
@@ -298,7 +332,7 @@ export const AdminUploadModal: React.FC<AdminUploadModalProps> = ({
           <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-200 mt-4">
             <button type="button" onClick={onClose} disabled={isProcessing} className="px-4 py-2 text-xs font-bold text-slate-600">Batal</button>
             <button type="submit" disabled={isProcessing} className="px-5 py-2.5 bg-amber-500 text-slate-950 font-extrabold text-xs rounded-xl flex items-center gap-2">
-              {isProcessing ? 'Mengunggah ke Hostinger...' : <><Upload className="w-4 h-4" /> Publikasikan</>}
+              {isProcessing ? processingStatus : <><Upload className="w-4 h-4" /> Publikasikan</>}
             </button>
           </div>
         </form>
