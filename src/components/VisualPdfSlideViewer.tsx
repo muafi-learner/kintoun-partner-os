@@ -5,7 +5,7 @@ import pdfWorkerUrl from 'pdfjs-dist/build/pdf.worker.min.js?url';
 import { getFileFromDB, getCachedPdf, setCachedPdf, generateSamplePdfUint8Array } from '../services/storage';
 import {
   ChevronLeft, ChevronRight, ZoomIn, ZoomOut, Download, Maximize2, Minimize2,
-  FileText, AlertCircle, RefreshCw, Loader2, Upload
+  FileText, AlertCircle, Loader2, Trash2
 } from 'lucide-react';
 
 if (typeof window !== 'undefined') {
@@ -29,11 +29,12 @@ interface VisualPdfSlideViewerProps {
   isAdmin?: boolean;
   initialPage?: number;
   onReplacePdf?: () => void;
+  onDeletePdf?: () => void; // Prop handler hapus dokumen
   onBack?: () => void;
 }
 
 export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
-  title, subtitle, pdfUrl, pdfDataUrl, pdfData, rawFile, fileId, fileName, fileSize = 'File PDF', isAdmin = false, initialPage = 1, onReplacePdf, onBack
+  title, subtitle, pdfUrl, pdfDataUrl, pdfData, rawFile, fileId, fileName, fileSize = 'File PDF', isAdmin = false, initialPage = 1, onReplacePdf, onDeletePdf, onBack
 }) => {
   const [numPages, setNumPages] = useState<number>(0);
   const [currentPage, setCurrentPage] = useState<number>(initialPage);
@@ -42,6 +43,8 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const pdfDocRef = useRef<pdfjsLib.PDFDocumentProxy | null>(null);
@@ -200,17 +203,14 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
 
-        // Ambil dimensi kontainer aktual saat ini
         const containerWidth = containerRef.current?.clientWidth || 900;
         const containerHeight = containerRef.current?.clientHeight || 600;
         
         const unscaledViewport = page.getViewport({ scale: 1, rotation });
         
-        // Cek ruang tersedia dengan mengurangi area toolbar
         const availableWidth = Math.max(containerWidth - 48, 320);
         const availableHeight = Math.max(containerHeight - 140, 320); 
 
-        // Kunci rasio agar fit-to-screen bekerja sempurna dari lebar dan tinggi
         const fitWidthScale = availableWidth / unscaledViewport.width;
         const fitHeightScale = availableHeight / unscaledViewport.height;
         const autoFitScale = Math.min(fitWidthScale, fitHeightScale) * 0.98;
@@ -266,6 +266,15 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
     return () => document.removeEventListener('fullscreenchange', handleFsChange);
   }, []);
 
+  const handleDeleteClick = async () => {
+    if (!window.confirm("Apakah Anda yakin ingin menghapus dokumen ini secara permanen?")) return;
+    if (onDeletePdf) {
+      setIsDeleting(true);
+      await onDeletePdf();
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <div 
       ref={containerRef}
@@ -274,47 +283,52 @@ export const VisualPdfSlideViewer: React.FC<VisualPdfSlideViewerProps> = ({
         isFullscreen ? 'bg-slate-950 rounded-none border-none' : 'bg-[#f6f4ee] rounded-2xl border border-[#d6cfbf] shadow-sm'
       }`}
     >
-      {/* Top Toolbar */}
-      <div className="bg-[#00263f] text-slate-200 px-4 py-3 flex flex-wrap items-center justify-between gap-3 border-b border-[#3c586d]/40">
-        <div className="flex items-center gap-3 min-w-0">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 border border-emerald-500/30">
-            <FileText className="w-4 h-4" />
+      {/* Top Toolbar - Clean Minimalist Look */}
+      <div className="bg-[#00263f] text-slate-200 px-4 py-3 flex items-center justify-between gap-3 border-b border-[#3c586d]/40">
+        {/* Left: Simple File Name Indicator */}
+        <div className="flex items-center gap-2.5 min-w-0">
+          <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-300 flex items-center justify-center shrink-0 border border-emerald-500/30">
+            <FileText className="w-3.5 h-3.5" />
           </div>
-          <div className="truncate">
-            <h4 className="text-xs sm:text-sm font-black text-white truncate max-w-[220px] sm:max-w-md">
-              {fileName || title}
-            </h4>
-            <p className="text-[11px] text-[#c0c9ce] flex items-center gap-1.5 font-medium">
-              <span>{fileSize}</span> <span>•</span> <span className="text-emerald-400 font-bold">Visual Slide PPT</span>
-            </p>
-          </div>
+          <h4 className="text-xs sm:text-sm font-bold text-white truncate max-w-[240px] sm:max-w-md">
+            {fileName || title}
+          </h4>
         </div>
 
-        {/* Action Controls */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 bg-slate-800/80 rounded-lg p-1 text-xs border border-slate-700/50">
-            <button onClick={() => setScale((prev) => Math.max(prev - 0.15, 0.6))} className="p-1 hover:bg-slate-700 rounded text-slate-300 hover:text-white transition cursor-pointer" title="Perkecil Slide">
+        {/* Right: Icon-based Controls Only */}
+        <div className="flex items-center gap-1.5">
+          {/* Zoom Controls */}
+          <div className="flex items-center bg-slate-800/80 rounded-lg p-0.5 border border-slate-700/50">
+            <button onClick={() => setScale((prev) => Math.max(prev - 0.15, 0.6))} className="p-1.5 hover:bg-slate-700 rounded text-slate-300 hover:text-white transition cursor-pointer" title="Perkecil Slide">
               <ZoomOut className="w-3.5 h-3.5" />
             </button>
             <span className="px-1.5 font-mono text-[11px] text-slate-300">{Math.round(scale * 100)}%</span>
-            <button onClick={() => setScale((prev) => Math.min(prev + 0.15, 1.8))} className="p-1 hover:bg-slate-700 rounded text-slate-300 hover:text-white transition cursor-pointer" title="Perbesar Slide">
+            <button onClick={() => setScale((prev) => Math.min(prev + 0.15, 1.8))} className="p-1.5 hover:bg-slate-700 rounded text-slate-300 hover:text-white transition cursor-pointer" title="Perbesar Slide">
               <ZoomIn className="w-3.5 h-3.5" />
             </button>
           </div>
 
+          {/* Download Button (Icon Only) */}
           {isAdmin && pdfUrl && (
-            <a href={pdfUrl} download={fileName} className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-800/80 hover:bg-slate-700 rounded-lg text-xs text-slate-200 hover:text-white font-semibold transition border border-slate-700/50 cursor-pointer" title="Unduh Berkas Asli">
-              <Download className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Unduh</span>
+            <a href={pdfUrl} download={fileName} className="p-2 bg-slate-800/80 hover:bg-slate-700 rounded-lg text-slate-300 hover:text-white transition border border-slate-700/50 cursor-pointer" title="Unduh Berkas Asli">
+              <Download className="w-3.5 h-3.5" />
             </a>
           )}
 
-          <button onClick={toggleFullscreen} className="p-1.5 bg-slate-800/80 hover:bg-slate-700 rounded-lg text-slate-300 hover:text-white transition cursor-pointer border border-slate-700/50" title="Layar Penuh">
+          {/* Fullscreen Toggle */}
+          <button onClick={toggleFullscreen} className="p-2 bg-slate-800/80 hover:bg-slate-700 rounded-lg text-slate-300 hover:text-white transition cursor-pointer border border-slate-700/50" title="Layar Penuh">
             {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
           </button>
 
-          {isAdmin && onReplacePdf && (
-            <button onClick={onReplacePdf} className="ml-1 px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 font-black text-xs rounded-lg transition shadow-sm cursor-pointer flex items-center gap-1">
-              <Upload className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Ganti File</span>
+          {/* Delete / Trash Icon Button (Admin Only) */}
+          {isAdmin && onDeletePdf && (
+            <button 
+              onClick={handleDeleteClick} 
+              disabled={isDeleting}
+              className="p-2 bg-rose-900/60 hover:bg-rose-700 text-rose-200 hover:text-white rounded-lg transition border border-rose-700/50 cursor-pointer disabled:opacity-50" 
+              title="Hapus Dokumen"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
             </button>
           )}
         </div>
