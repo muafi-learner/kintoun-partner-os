@@ -35,32 +35,21 @@ import { PdfViewer } from './components/PdfViewer';
 import { EmptyModuleState } from './components/EmptyModuleState';
 import { STORAGE_KEYS } from './services/storage';
 
-// Helper function untuk merender slide dummy
-const generateSlideDeck = (title: string, fileName: string, fileSize: string, date: string): PdfSlide[] => [
+// UPDATE: Parameter extractedText ditambahkan dan disusupkan ke dalam slide.note
+const generateSlideDeck = (title: string, fileName: string, fileSize: string, date: string, extractedText: string = ''): PdfSlide[] => [
   {
     slideNumber: 1,
     title: title.toUpperCase(),
     points: [
-      'Modul Presentasi PPT Yang Diubah Menjadi PDF Resmi 2026',
+      'Modul Presentasi PPT Yang Diubah Menjadi PDF Resmi',
       `Nama Berkas: ${fileName}`,
       `Ukuran Dokumen: ${fileSize || 'N/A'}`,
       'Format Berkas: PPT / PDF Standar Operasional Kintoun',
       `Diupload pada: ${date}`
     ],
-    note: 'Materi presentasi terbaru dari Tim Operasional Head Office.',
+    // Teks hasil ekstraksi PDF disimpan di sini agar terindeks oleh mesin pencari
+    note: extractedText || 'Materi presentasi terbaru dari Tim Operasional Head Office.',
     bgColor: 'bg-[#00263f] text-white'
-  },
-  {
-    slideNumber: 2,
-    title: 'INSTRUKSI STANDAR OPERASIONAL TERBARU',
-    points: [
-      'Pelajari materi ini secara seksama untuk diterapkan di seluruh gerai.',
-      '1. Seluruh kru barista wajib memahami alur kerja dan standar kualitas sajian.',
-      '2. Gunakan takaran resep dan gramasi yang telah dibakukan.',
-      '3. Hubungi supervisor bila terdapat keraguan dalam penerapan di lapangan.'
-    ],
-    note: 'Penerapan standar menjamin konsistensi rasa dan layanan di seluruh gerai.',
-    bgColor: 'bg-[#153459] text-white'
   }
 ];
 
@@ -106,7 +95,6 @@ export default function App() {
   const [isHostingerGuideOpen, setIsHostingerGuideOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // LOGIK SINKRONISASI DATA DARI HOSTINGER (FUNGSI BARU)
   const syncFromServer = useCallback(async () => {
     try {
       const response = await fetch('https://kintouncoffee.id/partner/api/upload.php');
@@ -118,12 +106,12 @@ export default function App() {
       let newSpecificNews = { ...INITIAL_SPECIFIC_NEWS };
       let newSubcategories = [...INITIAL_SUBCATEGORIES];
 
-      // Membaca data dari yang paling lama ke yang paling baru agar data terbaru menimpa yang lama
       const reversedItems = [...items].reverse();
 
       reversedItems.forEach(payload => {
         const uploadDate = new Date(payload.uploadedAt).toLocaleDateString('id-ID');
-        const slideDeck = generateSlideDeck(payload.title, payload.fileName, 'N/A', uploadDate);
+        // UPDATE: Payload.extractedText disalurkan ke fungsi pembuat slide
+        const slideDeck = generateSlideDeck(payload.title, payload.fileName, 'N/A', uploadDate, payload.extractedText);
 
         if (payload.targetType === 'main-news') {
           newMainNews = {
@@ -171,11 +159,10 @@ export default function App() {
     }
   }, []);
 
-  // Polling data setiap 10 detik jika user sudah login
   useEffect(() => {
     if (isAuthenticated) {
-      syncFromServer(); // Jalankan sekali saat load
-      const interval = setInterval(syncFromServer, 10000); // Polling setiap 10 detik
+      syncFromServer();
+      const interval = setInterval(syncFromServer, 10000); 
       return () => clearInterval(interval);
     }
   }, [isAuthenticated, syncFromServer]);
@@ -224,9 +211,8 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  // Optimistic Update saat Admin sukses upload (UI langsung update, polling akan me-refresh ulang nanti)
   const handleUploadSuccess = (payload: any) => {
-    syncFromServer(); // Langsung trigger sinkronisasi
+    syncFromServer(); 
     
     if (payload.notifyUsers) {
       const newNotif: AppNotification = {
