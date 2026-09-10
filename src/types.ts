@@ -106,3 +106,13 @@ export interface TicketRequest {
   status: 'open' | 'in_progress' | 'resolved';
   createdAt: string;
 }
+
+export interface TicketTemplate {
+  id: string;
+  department: string;
+  title: string;
+  description: string;
+  sla: string;
+  iconName: string;
+  badgeColor: string;
+}
