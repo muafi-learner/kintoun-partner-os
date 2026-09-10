@@ -18,7 +18,7 @@ interface HeaderProps {
   onToggleMobileSidebar?: () => void;
   onLogout?: () => void;
   onOpenProfile?: () => void;
-  onOpenTicketCatalog: () => void;
+  onOpenTicketCatalog?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -41,8 +41,7 @@ export const Header: React.FC<HeaderProps> = ({
       id="main-app-header"
       className="sticky top-0 w-full bg-[#00263f] text-white shadow-sm border-b border-white/5 transition-colors duration-200 z-50"
     >
-      {/* Tinggi mobile h-20 dipertahankan sesuai settingan Anda */}
-      <div className="w-full px-4 sm:px-6 lg:px-8 h-20 sm:h-16 flex items-center justify-between relative">
+      <div className="w-full px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between relative">
         
         {/* KIRI: Logo Kintoun Mepet Kiri */}
         <div className="flex items-center shrink-0">
@@ -53,12 +52,21 @@ export const Header: React.FC<HeaderProps> = ({
             <img
               src="/cloud-kintoun-logo.svg"
               alt="Kintoun Logo"
-              className="w-13 h-11 sm:w-10 sm:h-7 object-contain transition-transform duration-150 group-hover:scale-105"
+              className="w-8 h-6 sm:w-10 sm:h-7 object-contain transition-transform duration-150 group-hover:scale-105"
             />
+            {/* //code: "hidden sm:flex" membuat teks Kintoun Partner Sembunyikan di Mobile, dan Muncul di Tablet/Desktop */}
+            <div className="hidden sm:flex flex-col">
+              <span className="text-base sm:text-lg font-black tracking-wider text-white group-hover:text-[#c0c9ce] transition leading-tight">
+                KINTOUN
+              </span>
+              <span className="text-[8px] sm:text-[9px] tracking-widest text-[#8da2b0] font-bold uppercase leading-none">
+                PARTNER
+              </span>
+            </div>
           </button>
         </div>
 
-        {/* TENGAH: Navigasi Kategori */}
+        {/* TENGAH: Navigasi Kategori (Absolute Centered agar 100% Simetris di Desktop) */}
         <nav className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-6">
           {CATEGORIES.map((cat) => {
             const isActive = currentView !== 'home' && currentView !== 'main-news' && currentView !== 'dashboard' && currentView !== 'ticket-catalog' && selectedCategory === cat.id;
@@ -78,20 +86,22 @@ export const Header: React.FC<HeaderProps> = ({
           })}
 
           {/* MENU TIKET: STYLE DISAMAKAN DENGAN KATEGORI */}
-          <button
-            onClick={onOpenTicketCatalog}
-            className={`whitespace-nowrap text-[11px] font-bold tracking-widest uppercase transition-colors cursor-pointer ${
-              currentView === 'ticket-catalog'
-                ? 'text-white' 
-                : 'text-[#8da2b0] hover:text-white'
-            }`}
-          >
-            ESKALASI TIKET
-          </button>
+          {onOpenTicketCatalog && (
+            <button
+              onClick={onOpenTicketCatalog}
+              className={`whitespace-nowrap text-[11px] font-bold tracking-widest uppercase transition-colors cursor-pointer ${
+                currentView === 'ticket-catalog'
+                  ? 'text-white' 
+                  : 'text-[#8da2b0] hover:text-white'
+              }`}
+            >
+              ESKALASI TIKET
+            </button>
+          )}
         </nav>
 
-        {/* KANAN: Tools & Profile */}
-        <div className="flex items-center gap-3 sm:gap-5 shrink-0">
+        {/* KANAN: Tools & Profile (Desain Minimalis tanpa kotak teks panjang) */}
+        <div className="flex items-center gap-4 sm:gap-5 shrink-0">
           {role === 'admin' && (
             <button
               onClick={onOpenUpload}
@@ -102,27 +112,26 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
 
-          {/* //code: Tombol Search - Atur margin kanan (mr-...) di sini jika ingin menjauhkan dari tombol bell */}
           <button
             onClick={onOpenSearch}
-            className="p-2 -m-2 text-[#8da2b0] hover:text-white transition cursor-pointer flex items-center justify-center mr-1 sm:mr-0"
+            className="p-2 -m-2 text-[#8da2b0] hover:text-white transition cursor-pointer flex items-center justify-center"
             title="Pencarian"
           >
-            <Search className="w-6 h-6 sm:w-[18px] sm:h-[18px]" />
+            <Search className="w-5 h-5 sm:w-[18px] sm:h-[18px]" />
           </button>
 
-          {/* //code: Tombol Notifikasi - Atur margin kanan (mr-...) di sini jika ingin menjauhkan dari profil/hamburger */}
           <button
             onClick={onOpenNotifications}
-            className="relative p-2 -m-2 text-[#8da2b0] hover:text-white transition cursor-pointer flex items-center justify-center mr-1 sm:mr-0"
+            className="relative p-2 -m-2 text-[#8da2b0] hover:text-white transition cursor-pointer flex items-center justify-center"
             title="Notifikasi"
           >
-            <Bell className="w-6 h-6 sm:w-[18px] sm:h-[18px]" />
+            <Bell className="w-5 h-5 sm:w-[18px] sm:h-[18px]" />
             {unreadCount > 0 && (
-              <span className="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500"></span>
+              <span className="absolute top-0.5 right-0.5 w-1.5 h-1.5 rounded-full bg-rose-500"></span>
             )}
           </button>
 
+          {/* Ikon Profil Bulat (Menggantikan Sidebar & Nama Teks Panjang di Desktop) */}
           <button 
             onClick={onOpenProfile || onLogout} 
             className="hidden lg:flex items-center justify-center w-7 h-7 rounded-full bg-[#10354f] text-sky-400 hover:bg-[#1a4666] hover:text-white transition cursor-pointer ring-1 ring-white/10"
@@ -131,13 +140,13 @@ export const Header: React.FC<HeaderProps> = ({
             {role === 'admin' ? <Building className="w-3.5 h-3.5" /> : <StoreIcon className="w-3.5 h-3.5" />}
           </button>
 
-          {/* //code: Tombol Hamburger Menu - Atur margin kiri (ml-...) untuk jarak dari bell, dan margin kanan (mr-...) untuk jarak dari tepi kanan layar */}
+          {/* Hamburger Menu (Hanya Muncul di Mobile/HP) */}
           {onToggleMobileSidebar && (
             <button
               onClick={onToggleMobileSidebar}
-              className="lg:hidden p-2 -m-2 text-[#8da2b0] hover:text-white transition cursor-pointer ml-0 mr-2 flex items-center justify-center"
+              className="lg:hidden p-2 -m-2 text-[#8da2b0] hover:text-white transition cursor-pointer ml-1 mr-1 flex items-center justify-center"
             >
-              <Menu className="w-7 h-7 sm:w-7 sm:h-7" />
+              <Menu className="w-6 h-6 sm:w-6 sm:h-6" />
             </button>
           )}
         </div>
