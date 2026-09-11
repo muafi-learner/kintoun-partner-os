@@ -19,6 +19,7 @@ interface HeaderProps {
   onLogout?: () => void;
   onOpenProfile?: () => void;
   onOpenTicketCatalog?: () => void;
+  canViewTickets?: boolean; // Prop otorisasi tiket
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -34,7 +35,8 @@ export const Header: React.FC<HeaderProps> = ({
   onToggleMobileSidebar,
   onLogout,
   onOpenProfile,
-  onOpenTicketCatalog
+  onOpenTicketCatalog,
+  canViewTickets
 }) => {
   return (
     <header
@@ -54,7 +56,6 @@ export const Header: React.FC<HeaderProps> = ({
               alt="Kintoun Logo"
               className="w-8 h-6 sm:w-10 sm:h-7 object-contain transition-transform duration-150 group-hover:scale-105"
             />
-            {/* //code: "hidden sm:flex" membuat teks Kintoun Partner Sembunyikan di Mobile, dan Muncul di Tablet/Desktop */}
             <div className="hidden sm:flex flex-col">
               <span className="text-base sm:text-lg font-black tracking-wider text-white group-hover:text-[#c0c9ce] transition leading-tight">
                 KINTOUN
@@ -85,8 +86,8 @@ export const Header: React.FC<HeaderProps> = ({
             );
           })}
 
-          {/* MENU TIKET: STYLE DISAMAKAN DENGAN KATEGORI */}
-          {onOpenTicketCatalog && (
+          {/* MENU TIKET: HANYA TAMPIL JIKA DIIZINKAN */}
+          {canViewTickets && onOpenTicketCatalog && (
             <button
               onClick={onOpenTicketCatalog}
               className={`whitespace-nowrap text-[11px] font-bold tracking-widest uppercase transition-colors cursor-pointer ${
@@ -102,7 +103,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         {/* KANAN: Tools & Profile (Desain Minimalis tanpa kotak teks panjang) */}
         <div className="flex items-center gap-4 sm:gap-5 shrink-0">
-          {role === 'admin' && (
+          {role === 'ho-department' && (
             <button
               onClick={onOpenUpload}
               className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded text-[10px] font-bold bg-amber-400/10 text-amber-400 hover:bg-amber-400 hover:text-[#00263f] transition cursor-pointer uppercase tracking-wider"
@@ -131,13 +132,13 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
-          {/* Ikon Profil Bulat (Menggantikan Sidebar & Nama Teks Panjang di Desktop) */}
+          {/* Ikon Profil Bulat */}
           <button 
             onClick={onOpenProfile || onLogout} 
             className="hidden lg:flex items-center justify-center w-7 h-7 rounded-full bg-[#10354f] text-sky-400 hover:bg-[#1a4666] hover:text-white transition cursor-pointer ring-1 ring-white/10"
-            title={role === 'admin' ? 'Profil Head Office' : 'Profil Store'}
+            title={role === 'ho-department' ? 'Profil Head Office' : 'Profil Store'}
           >
-            {role === 'admin' ? <Building className="w-3.5 h-3.5" /> : <StoreIcon className="w-3.5 h-3.5" />}
+            {role === 'ho-department' ? <Building className="w-3.5 h-3.5" /> : <StoreIcon className="w-3.5 h-3.5" />}
           </button>
 
           {/* Hamburger Menu (Hanya Muncul di Mobile/HP) */}
