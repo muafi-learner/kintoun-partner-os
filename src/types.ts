@@ -1,4 +1,4 @@
-export type Role = 'crew' | 'store-leader' | 'ho-department' | 'admin' | 'user';
+export type Role = 'crew' | 'store-leader' | 'ho-department';
 
 export interface UserProfile {
   id: string;
