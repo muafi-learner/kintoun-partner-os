@@ -271,10 +271,11 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleUploadSuccess = (payload: any) => {
+  const handleUploadSuccess = async (payload: any) => {
     syncFromServer(); 
     
     if (payload.notifyUsers) {
+      // 1. Notifikasi In-App (Web)
       const newNotif: AppNotification = {
         id: `notif_${Date.now()}`,
         title: `Materi Baru: ${payload.title}`,
@@ -289,6 +290,27 @@ export default function App() {
         }
       };
       setNotifications(prev => [newNotif, ...prev]);
+
+      // 2. Trigger Webhook n8n
+      try {
+        // GANTI URL INI DENGAN URL WEBHOOK N8N ANDA NANTI
+        const N8N_WEBHOOK_URL = 'https://n8n-h238.srv1866922.hstgr.cloud/webhook-test/kintoun-partner';
+        
+        await fetch(N8N_WEBHOOK_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            event: 'new_module_uploaded',
+            moduleTitle: payload.title,
+            fileName: payload.fileName,
+            category: payload.targetType === 'main-news' ? 'PANDUAN UTAMA' : (payload.categoryId?.toUpperCase() || 'SOP'),
+            uploadedBy: user.name,
+            timestamp: new Date().toISOString()
+          })
+        });
+      } catch (error) {
+        console.error("Gagal mengirim trigger webhook ke n8n:", error);
+      }
     }
   };
 
