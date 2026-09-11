@@ -66,7 +66,7 @@ export default function App() {
   const [targetPdfSlide, setTargetPdfSlide] = useState<number>(1);
 
   const [role, setRole] = useState<Role>(() => {
-    return (localStorage.getItem(STORAGE_KEYS.CURRENT_ROLE) as Role) || 'user';
+    return (localStorage.getItem(STORAGE_KEYS.CURRENT_ROLE) as Role) || 'crew';
   });
 
   const [user, setUser] = useState<UserProfile>(() => {
@@ -78,7 +78,7 @@ export default function App() {
     if (localData) {
       try { return JSON.parse(localData); } catch (e) { console.error(e); }
     }
-    return { id: '', name: '', role: 'user', storeName: '', email: '' };
+    return { id: '', name: '', role: 'crew', storeName: '', email: '' };
   });
 
   const [isLoginOpen, setIsLoginOpen] = useState(!isAuthenticated);
@@ -237,12 +237,12 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    setUser({ id: '', name: '', role: 'user', storeName: '', email: '' });
-    setRole('user');
+    setUser({ id: '', name: '', role: 'crew', storeName: '', email: '' });
+    setRole('crew');
     setIsAuthenticated(false);
     setIsLoginOpen(true);
     localStorage.removeItem('kintoun_is_authenticated');
-    localStorage.setItem(STORAGE_KEYS.CURRENT_ROLE, 'user');
+    localStorage.setItem(STORAGE_KEYS.CURRENT_ROLE, 'crew');
     setCurrentView('home');
     setActiveDashboard(null);
   };
@@ -350,9 +350,9 @@ export default function App() {
   const currentSpecificNews = specificNews[selectedCategory] || specificNews['customer'];
   const unreadNotifCount = notifications.filter(n => !n.read).length;
 
-  // LOGIKA OTORISASI BARU
-  const isUserAdmin = role === 'admin' || role === 'ho-department';
-  const canViewTickets = role === 'admin' || role === 'ho-department' || role === 'store-leader' || role === 'user';
+  // LOGIKA OTORISASI MUTLAK YANG BARU (Hanya 3 Role)
+  const isUserAdmin = role === 'ho-department';
+  const canViewTickets = role === 'store-leader' || role === 'ho-department';
 
   return (
     <div className="min-h-screen bg-[#eeebe1] text-slate-800 flex flex-col font-sans selection:bg-[#00263f] selection:text-white">
@@ -396,6 +396,7 @@ export default function App() {
               setCurrentView('ticket-catalog');
               setActiveDashboard(null);
             }}
+            canViewTickets={canViewTickets}
           />
 
           <main className="flex-1 flex flex-col">
@@ -422,6 +423,7 @@ export default function App() {
                 role={role}
                 user={user}
                 onLogout={handleLogout}
+                canViewTickets={canViewTickets}
               />
 
               <div className="flex-1 w-full min-w-0 flex flex-col overflow-y-auto">
