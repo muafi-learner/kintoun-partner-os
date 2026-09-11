@@ -127,11 +127,21 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
   const handleDeleteSubcat = async () => {
     if (!editingSubcat) return;
     
-    const confirmDelete = window.confirm(`Apakah Anda yakin ingin menghapus sub-topik "${editingSubcat.title}" secara permanen?`);
+    const confirmDelete = window.confirm(`Apakah Anda yakin ingin menghapus sub-topik "${editingSubcat.title}" beserta materi PDF di dalamnya secara permanen?`);
     if (!confirmDelete) return;
 
     setIsSaving(true);
     try {
+      // 1. Hapus PDF fisik dan riwayat di db.json (Hanya dieksekusi jika kartu ini punya PDF)
+      if (editingSubcat.fileId) {
+        await fetch('https://kintouncoffee.id/partner/api/delete.php', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: editingSubcat.fileId })
+        }).catch(err => console.error("Gagal menghapus PDF terkait:", err));
+      }
+
+      // 2. Hapus kerangka kartu modul dari subcategories.json
       const updatedList = subcategoriesList.filter(sub => sub.id !== editingSubcat.id);
 
       const response = await fetch('https://kintouncoffee.id/partner/api/update-subcategories.php', {
