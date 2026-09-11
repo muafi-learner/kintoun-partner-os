@@ -31,6 +31,7 @@ interface HomeViewProps {
   onOpenUpload: () => void;
   onUpdateTickets: (newTickets: TicketTemplate[]) => void;
   isAdmin: boolean;
+  canViewTickets: boolean; // Tambahan prop otorisasi tiket
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({
@@ -41,6 +42,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onSelectCategory,
   onUpdateTickets,
   isAdmin,
+  canViewTickets, // Tangkap prop otorisasi tiket
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
    
@@ -333,70 +335,72 @@ export const HomeView: React.FC<HomeViewProps> = ({
           })}
         </section>
 
-        {/* ESKALASI TIKET */}
-        <section className="mb-16 pt-8 border-t border-[#d6cfbf]/60">
-          <div className="mb-6 px-1">
-            <h2 className="font-poppins text-2xl sm:text-4xl font-bold text-[#00263f] capitalize tracking-tight mb-2">
-              ESKALASI TIKET
-            </h2>
-            <p className="font-poppins text-xs sm:text-sm text-slate-600 font-medium">
-              Pilih akses form di bawah ini untuk mengajukan permintaan atau laporan operasional.
-            </p>
-          </div>
+        {/* ESKALASI TIKET - HANYA MUNCUL JIKA DIIZINKAN (BUKAN CREW) */}
+        {canViewTickets && (
+          <section className="mb-16 pt-8 border-t border-[#d6cfbf]/60">
+            <div className="mb-6 px-1">
+              <h2 className="font-poppins text-2xl sm:text-4xl font-bold text-[#00263f] capitalize tracking-tight mb-2">
+                ESKALASI TIKET
+              </h2>
+              <p className="font-poppins text-xs sm:text-sm text-slate-600 font-medium">
+                Pilih akses form di bawah ini untuk mengajukan permintaan atau laporan operasional.
+              </p>
+            </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {tickets.map((ticket) => {
-              const TicketIcon = getIconComponent(ticket.iconName);
-              const ticketUrl = (ticket as any).url || '#';
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {tickets.map((ticket) => {
+                const TicketIcon = getIconComponent(ticket.iconName);
+                const ticketUrl = (ticket as any).url || '#';
 
-              return (
-                <div key={ticket.id} className="group relative bg-white hover:bg-slate-50 border border-[#d6cfbf] rounded-2xl p-5 shadow-xs flex flex-col justify-between min-h-[170px]">
-                  {isAdmin && (
-                    <button 
-                      onClick={() => { setIsAddingNewTicket(false); setEditingTicket(ticket); }} 
-                      className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-100 hover:bg-amber-400 text-slate-600 hover:text-slate-950 transition z-10 cursor-pointer"
-                      title="Edit Link Form Ini"
-                    >
-                      <Edit3 className="w-3.5 h-3.5" />
-                    </button>
-                  )}
-                  <div>
-                    <div className="flex items-center gap-3 mb-3 pr-8">
-                      <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0">
-                        <TicketIcon className="w-5 h-5" />
+                return (
+                  <div key={ticket.id} className="group relative bg-white hover:bg-slate-50 border border-[#d6cfbf] rounded-2xl p-5 shadow-xs flex flex-col justify-between min-h-[170px]">
+                    {isAdmin && (
+                      <button 
+                        onClick={() => { setIsAddingNewTicket(false); setEditingTicket(ticket); }} 
+                        className="absolute top-4 right-4 p-1.5 rounded-lg bg-slate-100 hover:bg-amber-400 text-slate-600 hover:text-slate-950 transition z-10 cursor-pointer"
+                        title="Edit Link Form Ini"
+                      >
+                        <Edit3 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    <div>
+                      <div className="flex items-center gap-3 mb-3 pr-8">
+                        <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-center text-slate-600 shrink-0">
+                          <TicketIcon className="w-5 h-5" />
+                        </div>
+                        <h3 className="text-sm font-black text-slate-900 uppercase leading-snug">{ticket.title}</h3>
                       </div>
-                      <h3 className="text-sm font-black text-slate-900 uppercase leading-snug">{ticket.title}</h3>
+                      <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">{ticket.description}</p>
                     </div>
-                    <p className="text-xs text-slate-600 leading-relaxed line-clamp-3">{ticket.description}</p>
+                    <div className="pt-4 mt-4 border-t border-slate-100 flex justify-end">
+                      <a 
+                        href={ticketUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2 rounded-xl bg-[#00263f] text-white text-xs font-black flex items-center gap-1.5 hover:bg-[#3c586d] transition shadow-2xs cursor-pointer"
+                      >
+                        Buat Tiket <ExternalLink className="w-3.5 h-3.5" />
+                      </a>
+                    </div>
                   </div>
-                  <div className="pt-4 mt-4 border-t border-slate-100 flex justify-end">
-                    <a 
-                      href={ticketUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-4 py-2 rounded-xl bg-[#00263f] text-white text-xs font-black flex items-center gap-1.5 hover:bg-[#3c586d] transition shadow-2xs cursor-pointer"
-                    >
-                      Buat Tiket <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
 
-            {isAdmin && (
-              <div 
-                onClick={handleOpenAddNewTicket} 
-                className="border-2 border-dashed border-amber-300 bg-amber-50/40 hover:bg-amber-50 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer min-h-[170px] transition"
-              >
-                <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mb-2.5 shadow-2xs">
-                  <PlusCircle className="w-5 h-5" />
+              {isAdmin && (
+                <div 
+                  onClick={handleOpenAddNewTicket} 
+                  className="border-2 border-dashed border-amber-300 bg-amber-50/40 hover:bg-amber-50 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer min-h-[170px] transition"
+                >
+                  <div className="w-10 h-10 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center mb-2.5 shadow-2xs">
+                    <PlusCircle className="w-5 h-5" />
+                  </div>
+                  <h4 className="text-xs font-black text-amber-900 uppercase">TAMBAH LINK FORM</h4>
+                  <p className="text-[11px] text-amber-700 mt-1">Tambahkan tautan formulir eksternal baru</p>
                 </div>
-                <h4 className="text-xs font-black text-amber-900 uppercase">TAMBAH LINK FORM</h4>
-                <p className="text-[11px] text-amber-700 mt-1">Tambahkan tautan formulir eksternal baru</p>
-              </div>
-            )}
-          </div>
-        </section>
+              )}
+            </div>
+          </section>
+        )}
       </div>
 
       {/* MODAL EDIT KATEGORI */}
@@ -478,7 +482,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
                 <X className="w-5 h-5" />
               </button>
             </div>
-             
+              
             <form onSubmit={handleSaveTicket} className="space-y-4">
               <div>
                 <label className="block text-[11px] font-bold text-slate-500 uppercase mb-1">Judul Form / Tiket</label>
