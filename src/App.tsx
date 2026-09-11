@@ -196,7 +196,7 @@ export default function App() {
           if (subIndex > -1) {
             newSubcategories[subIndex] = {
               ...newSubcategories[subIndex],
-              title: payload.title,
+              //title: payload.title,
               pdfUrl: payload.pdfUrl,
               pdfFileName: payload.fileName,
               fileId: payload.id,
