@@ -90,7 +90,6 @@ export default function App() {
   const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [tickets, setTickets] = useState<TicketRequest[]>([]);
 
-  // //code: State baru untuk melacak modal upload spesifik
   const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [uploadTargetType, setUploadTargetType] = useState<'main-news' | 'subcategory' | undefined>(undefined);
   const [uploadCategoryId, setUploadCategoryId] = useState<CategoryId | undefined>(undefined);
@@ -102,7 +101,6 @@ export default function App() {
   const [isHostingerGuideOpen, setIsHostingerGuideOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
 
-  // //code: Fungsi pemanggil modal pintar
   const handleOpenUpload = (targetType?: 'main-news' | 'subcategory', categoryId?: CategoryId, subcategoryId?: string) => {
     setUploadTargetType(targetType);
     setUploadCategoryId(categoryId);
@@ -298,7 +296,6 @@ export default function App() {
     try {
       const fileIdToDelete = targetFileId || mainNews.fileId;
       
-      // Jika tidak ada ID, langsung reset tampilan ke home/kosong secara lokal
       if (!fileIdToDelete) {
         syncFromServer(); 
         setCurrentView('home'); 
@@ -313,13 +310,11 @@ export default function App() {
 
       const result = await response.json();
       
-      // Baik sukses dari server maupun file sudah telat/tidak ada, paksa sinkron ulang & pulang
       syncFromServer(); 
       setCurrentView('home'); 
       
     } catch (err) {
       console.error("Gagal menghapus dokumen ke server", err);
-      // Jika koneksi/server error, tetap paksa refresh state lokal agar user tidak terjebak
       syncFromServer();
       setCurrentView('home');
     }
@@ -354,6 +349,10 @@ export default function App() {
   const currentSubcategory = subcategories.find(s => s.id === selectedSubcategoryId) || subcategories[0];
   const currentSpecificNews = specificNews[selectedCategory] || specificNews['customer'];
   const unreadNotifCount = notifications.filter(n => !n.read).length;
+
+  // LOGIKA OTORISASI BARU
+  const isUserAdmin = role === 'admin' || role === 'ho-department';
+  const canViewTickets = role === 'admin' || role === 'ho-department' || role === 'store-leader' || role === 'user';
 
   return (
     <div className="min-h-screen bg-[#eeebe1] text-slate-800 flex flex-col font-sans selection:bg-[#00263f] selection:text-white">
@@ -443,7 +442,8 @@ export default function App() {
                     onOpenTicketModal={() => setCurrentView('ticket-catalog')}
                     onOpenUpload={() => handleOpenUpload()}
                     onUpdateTickets={(newTickets) => setTicketTemplates(newTickets)}
-                    isAdmin={role === 'admin'}
+                    isAdmin={isUserAdmin}
+                    canViewTickets={canViewTickets}
                   />
                 )}
 
@@ -466,7 +466,7 @@ export default function App() {
                         <EmptyModuleState
                           title={mainNews.title}
                           categoryName="PANDUAN UTAMA"
-                          isAdmin={role === 'admin'}
+                          isAdmin={isUserAdmin}
                           onUpload={() => handleOpenUpload('main-news')}
                           onBack={() => setCurrentView('home')}
                         />
@@ -481,7 +481,7 @@ export default function App() {
                           pdfData={mainNews.pdfData}
                           fileId={mainNews.fileId}
                           fileSize={mainNews.pdfFileSize}
-                          isAdmin={role === 'admin'}
+                          isAdmin={isUserAdmin}
                           initialPage={targetPdfSlide}
                           onReplacePdf={() => handleOpenUpload('main-news')}
                           onDeletePdf={() => handleDeletePdf(mainNews.fileId)}
@@ -511,7 +511,7 @@ export default function App() {
                     }}
                     onBackToHome={() => setCurrentView('home')}
                     onOpenMobileSidebar={() => setIsMobileSidebarOpen(true)}
-                    isAdmin={role === 'admin'}
+                    isAdmin={isUserAdmin}
                   />
                 )}
 
@@ -522,7 +522,7 @@ export default function App() {
                     targetSlide={targetPdfSlide}
                     onBack={() => setCurrentView('category')}
                     onOpenUpload={() => handleOpenUpload()}
-                    isAdmin={role === 'admin'}
+                    isAdmin={isUserAdmin}
                   />
                 )}
 
@@ -533,7 +533,7 @@ export default function App() {
                     onBack={() => setCurrentView('category')}
                     onOpenUpload={() => handleOpenUpload('subcategory', selectedCategory, selectedSubcategoryId)}
                     onDeletePdf={(subId) => handleDeletePdf(subcategories.find(s => s.id === subId)?.fileId)}
-                    isAdmin={role === 'admin'}
+                    isAdmin={isUserAdmin}
                   />
                 )}
 
@@ -548,7 +548,7 @@ export default function App() {
                 {currentView === 'ticket-catalog' && (
                   <TicketCatalogView 
                     tickets={ticketTemplates} 
-                    isAdmin={role === 'admin'} 
+                    isAdmin={isUserAdmin} 
                     onBack={() => setCurrentView('home')} 
                     onUpdateTickets={(newTickets) => setTicketTemplates(newTickets)} 
                   />
@@ -564,7 +564,7 @@ export default function App() {
             initialTargetType={uploadTargetType}
             initialCategoryId={uploadCategoryId}
             initialSubcategoryId={uploadSubcategoryId}
-            subcategories={subcategories} // -> TAMBAHKAN BARIS INI
+            subcategories={subcategories}
           />
           <NotificationModal
             isOpen={isNotifOpen}
