@@ -26,6 +26,7 @@ interface SidebarProps {
   role?: Role;
   user?: UserProfile;
   onLogout?: () => void;
+  canViewTickets?: boolean; // Prop otorisasi tiket
 }
 
 interface NavItem {
@@ -46,7 +47,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onOpenTicketModal,
   role,
   user,
-  onLogout
+  onLogout,
+  canViewTickets
 }) => {
   const navItems: NavItem[] = [
     { id: 'homepage', label: 'HOMEPAGE', shortLabel: 'Homepage', colorHex: '#00263f', icon: Home },
@@ -55,10 +57,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
     { id: 'equipment', label: 'EQUIPMENT ISSUE', shortLabel: 'Equipment', colorHex: '#2563eb', icon: Wrench },
     { id: 'people', label: 'PEOPLE ISSUE', shortLabel: 'People', colorHex: '#7c3aed', icon: UserCheck },
     { id: 'stock', label: 'STOCK & SUPPLY', shortLabel: 'Stock', colorHex: '#ea580c', icon: PackageCheck },
-    { id: 'store', label: 'STORE ISSUE', shortLabel: 'Store', colorHex: '#0891b2', icon: Store },
-    // TAMBAHAN MENU ESKALASI TIKET DI SIDEBAR
-    { id: 'ticket-catalog', label: 'ESKALASI TIKET', shortLabel: 'Tiket', colorHex: '#d97706', icon: LifeBuoy }
+    { id: 'store', label: 'STORE ISSUE', shortLabel: 'Store', colorHex: '#0891b2', icon: Store }
   ];
+
+  // Tambahkan menu Eskalasi Tiket hanya jika diizinkan
+  if (canViewTickets) {
+    navItems.push({ id: 'ticket-catalog', label: 'ESKALASI TIKET', shortLabel: 'Tiket', colorHex: '#d97706', icon: LifeBuoy });
+  }
 
   return (
     <>
@@ -76,10 +81,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="flex items-center justify-between px-4 pb-4 mb-2 border-b border-[#d6cfbf]/60 pt-2">
               <div className="flex items-center gap-2.5 text-[#00263f]">
                 <div className="w-8 h-8 rounded-lg bg-[#eeebe1] flex items-center justify-center shrink-0">
-                  {role === 'admin' ? <Building className="w-4 h-4" /> : <StoreIcon className="w-4 h-4" />}
+                  {role === 'ho-department' ? <Building className="w-4 h-4" /> : <StoreIcon className="w-4 h-4" />}
                 </div>
                 <span className="text-xs font-black uppercase tracking-widest truncate max-w-[150px]">
-                  {role === 'admin' ? 'HEAD OFFICE ADMIN' : (user?.storeName ? user.storeName : 'STORE GERAI')}
+                  {role === 'ho-department' ? 'HEAD OFFICE' : (user?.storeName ? user.storeName : 'STORE GERAI')}
                 </span>
               </div>
               <button
