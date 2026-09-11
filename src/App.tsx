@@ -294,7 +294,7 @@ export default function App() {
       // 2. Trigger Webhook n8n
       try {
         // GANTI URL INI DENGAN URL WEBHOOK N8N ANDA NANTI
-        const N8N_WEBHOOK_URL = 'https://n8n-h238.srv1866922.hstgr.cloud/webhook-test/kintoun-partner';
+        const N8N_WEBHOOK_URL = 'https://n8n-h238.srv1866922.hstgr.cloud/webhook/kintoun-partner';
         
         await fetch(N8N_WEBHOOK_URL, {
           method: 'POST',
