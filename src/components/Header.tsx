@@ -1,5 +1,5 @@
-import React from 'react';
-import { Search, Bell, Upload, Menu, Building, Store as StoreIcon } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Bell, Upload, Menu, Building, Store as StoreIcon, ChevronDown } from 'lucide-react';
 import { Role, UserProfile, AppNotification, CategoryId } from '../types';
 import { CATEGORIES } from '../data/initialData';
 
@@ -19,7 +19,7 @@ interface HeaderProps {
   onLogout?: () => void;
   onOpenProfile?: () => void;
   onOpenTicketCatalog?: () => void;
-  canViewTickets?: boolean; // Prop otorisasi tiket
+  canViewTickets?: boolean;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -38,17 +38,32 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenTicketCatalog,
   canViewTickets
 }) => {
+  // State untuk mengontrol visibilitas Mega Menu (Sub-navbar)
+  const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
+
+  // Fungsi helper saat klik kategori di dalam Mega Menu
+  const handleCategoryClick = (catId: CategoryId) => {
+    onSelectCategory(catId);
+    setIsMegaMenuOpen(false); // Tutup panel setelah dipilih
+  };
+
   return (
     <header
       id="main-app-header"
-      className="sticky top-0 w-full bg-[#00263f] text-white shadow-sm border-b border-white/5 transition-colors duration-200 z-50"
+      // Jika kursor mouse keluar dari seluruh area header, tutup Mega Menu
+      onMouseLeave={() => setIsMegaMenuOpen(false)}
+      className="sticky top-0 w-full z-50 transition-colors duration-200"
     >
-      <div className="w-full px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between relative">
+      {/* --- LAYER 1: HEADER UTAMA (IDLE) --- */}
+      <div className="w-full px-4 sm:px-6 lg:px-8 h-14 sm:h-16 flex items-center justify-between relative bg-[#00263f] text-white shadow-sm border-b border-white/5 z-20">
         
         {/* KIRI: Logo Kintoun Mepet Kiri */}
         <div className="flex items-center shrink-0">
           <button
-            onClick={onGoHome}
+            onClick={() => {
+              onGoHome();
+              setIsMegaMenuOpen(false);
+            }}
             className="flex items-center gap-2.5 text-left group focus:outline-none cursor-pointer select-none"
           >
             <img
@@ -67,29 +82,45 @@ export const Header: React.FC<HeaderProps> = ({
           </button>
         </div>
 
-        {/* TENGAH: Navigasi Kategori (Absolute Centered agar 100% Simetris di Desktop) */}
-        <nav className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-6">
-          {CATEGORIES.map((cat) => {
-            const isActive = currentView !== 'home' && currentView !== 'main-news' && currentView !== 'dashboard' && currentView !== 'ticket-catalog' && selectedCategory === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => onSelectCategory(cat.id)}
-                className={`whitespace-nowrap text-[11px] font-bold tracking-widest uppercase transition-colors cursor-pointer ${
-                  isActive 
-                    ? 'text-white' 
-                    : 'text-[#8da2b0] hover:text-white'
-                }`}
-              >
-                {cat.name}
-              </button>
-            );
-          })}
+        {/* TENGAH: Navigasi Minimalis (Absolute Centered agar Simetris) */}
+        <nav className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-8 h-full">
+          <button
+            onClick={() => {
+              onGoHome();
+              setIsMegaMenuOpen(false);
+            }}
+            className={`whitespace-nowrap text-[11px] font-bold tracking-widest uppercase transition-colors cursor-pointer ${
+              currentView === 'home' 
+                ? 'text-white' 
+                : 'text-[#8da2b0] hover:text-white'
+            }`}
+          >
+            HOMEPAGE
+          </button>
+
+          {/* TRIGGER MEGA MENU: Modul Operasional */}
+          <div 
+            // Buka Mega Menu saat di-hover
+            onMouseEnter={() => setIsMegaMenuOpen(true)}
+            className="h-full flex items-center cursor-pointer group"
+          >
+            <span className={`flex items-center gap-1.5 whitespace-nowrap text-[11px] font-bold tracking-widest uppercase transition-colors ${
+              isMegaMenuOpen || ['category', 'subcategory', 'specific-news'].includes(currentView)
+                ? 'text-white' 
+                : 'text-[#8da2b0] group-hover:text-white'
+            }`}>
+              MODUL OPERASIONAL
+              <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isMegaMenuOpen ? 'rotate-180' : ''}`} />
+            </span>
+          </div>
 
           {/* MENU TIKET: HANYA TAMPIL JIKA DIIZINKAN */}
           {canViewTickets && onOpenTicketCatalog && (
             <button
-              onClick={onOpenTicketCatalog}
+              onClick={() => {
+                onOpenTicketCatalog();
+                setIsMegaMenuOpen(false);
+              }}
               className={`whitespace-nowrap text-[11px] font-bold tracking-widest uppercase transition-colors cursor-pointer ${
                 currentView === 'ticket-catalog'
                   ? 'text-white' 
@@ -101,7 +132,7 @@ export const Header: React.FC<HeaderProps> = ({
           )}
         </nav>
 
-        {/* KANAN: Tools & Profile (Desain Minimalis tanpa kotak teks panjang) */}
+        {/* KANAN: Tools & Profile */}
         <div className="flex items-center gap-4 sm:gap-5 shrink-0">
           {role === 'ho-department' && (
             <button
@@ -132,7 +163,6 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </button>
 
-          {/* Ikon Profil Bulat */}
           <button 
             onClick={onOpenProfile || onLogout} 
             className="hidden lg:flex items-center justify-center w-7 h-7 rounded-full bg-[#10354f] text-sky-400 hover:bg-[#1a4666] hover:text-white transition cursor-pointer ring-1 ring-white/10"
@@ -141,7 +171,6 @@ export const Header: React.FC<HeaderProps> = ({
             {role === 'ho-department' ? <Building className="w-3.5 h-3.5" /> : <StoreIcon className="w-3.5 h-3.5" />}
           </button>
 
-          {/* Hamburger Menu (Hanya Muncul di Mobile/HP) */}
           {onToggleMobileSidebar && (
             <button
               onClick={onToggleMobileSidebar}
@@ -151,8 +180,37 @@ export const Header: React.FC<HeaderProps> = ({
             </button>
           )}
         </div>
-
       </div>
+
+      {/* --- LAYER 2: MEGA MENU SUB-NAVBAR (HOVER PANEL) --- */}
+      <div 
+        onMouseEnter={() => setIsMegaMenuOpen(true)}
+        className={`hidden lg:block absolute top-full left-0 w-full bg-[#021b2d] border-b border-white/10 shadow-xl transition-all duration-200 z-10 ${
+          isMegaMenuOpen 
+            ? 'opacity-100 translate-y-0 visible' 
+            : 'opacity-0 -translate-y-2 invisible pointer-events-none'
+        }`}
+      >
+        <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-center gap-x-6 gap-y-3 flex-wrap">
+          {CATEGORIES.map((cat) => {
+            const isActive = ['category', 'subcategory', 'specific-news'].includes(currentView) && selectedCategory === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => handleCategoryClick(cat.id)}
+                className={`whitespace-nowrap text-[10px] sm:text-[11px] font-bold tracking-widest uppercase transition-colors cursor-pointer px-2 py-1 rounded hover:bg-white/5 ${
+                  isActive 
+                    ? 'text-white bg-white/5' 
+                    : 'text-[#8da2b0] hover:text-white'
+                }`}
+              >
+                {cat.name}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
     </header>
   );
 };
