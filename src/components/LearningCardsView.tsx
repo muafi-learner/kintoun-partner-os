@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight, ExternalLink } from 'lucide-react';
+import { ChevronRight } from 'lucide-react';
 import { SubcategoryCard } from '../types';
 import { PdfViewer } from './PdfViewer';
 import { EmptyModuleState } from './EmptyModuleState';
@@ -16,7 +16,7 @@ const formatTitleCase = (text: string) => {
 interface LearningCardsViewProps {
   cardData: SubcategoryCard;
   onBack: () => void;
-  onBackToHome?: () => void; // Opsional: Untuk navigasi langsung ke Home
+  onBackToHome?: () => void;
   onOpenUpload: () => void;
   onDeletePdf?: (subcategoryId: string) => void;
   isAdmin: boolean;
@@ -40,7 +40,7 @@ export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
     <div className="relative flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-6xl mx-auto w-full font-sans pb-20">
       
       {/* --- BREADCRUMB HEADER BARU --- */}
-      <div className="font-poppins flex items-center gap-2.5 text-sm md:text-[15px] font-semibold text-[#00263f] opacity-70 mb-5 sm:mb-6 tracking-wide">
+      <div className="flex items-center gap-2.5 text-sm md:text-[15px] font-bold text-[#00263f] mb-5 sm:mb-6 tracking-wide">
         <span 
           onClick={onBackToHome || onBack}
           className="cursor-pointer hover:opacity-70 transition"
@@ -90,19 +90,6 @@ export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
             onBack={onBack}
           />
         )}
-      </div>
-
-      {/* TOMBOL BANTUAN TEKNISI FLOATING */}
-      <div className="fixed bottom-6 right-6 z-40">
-        <a
-          href="https://helpdesk.kintouncoffee.id"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="px-4.5 py-2.5 rounded-xl bg-[#00263f] hover:bg-[#3c586d] text-white font-black text-xs tracking-wider uppercase shadow-xl hover:shadow-2xl transition transform hover:scale-105 flex items-center gap-2 cursor-pointer border border-white/10"
-        >
-          <span>Bantuan Teknisi</span>
-          <ExternalLink className="w-4 h-4 text-slate-300" />
-        </a>
       </div>
     </div>
   );
