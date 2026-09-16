@@ -8,7 +8,7 @@ import {
   CheckSquare, DoorOpen, CreditCard, ShieldCheck, CheckCircle2, 
   PlusCircle, ExternalLink, Boxes, Sparkles, ArrowLeft, LifeBuoy, 
   Edit3, Check, HelpCircle, Info, Monitor, Smartphone, Camera,
-  Upload, ArrowRight
+  Upload, ArrowRight, ChevronRight
 } from 'lucide-react';
 import { CategoryId, SubcategoryCard, NewsArticle } from '../types';
 import { CATEGORIES } from '../data/initialData';
@@ -45,7 +45,6 @@ interface CategoryViewProps {
   specificNews: NewsArticle;
   onSelectSubcategory: (subcatId: string) => void;
   onSelectNews: () => void;
-  // //code: Props onOpenUpload sekarang menerima argumen
   onOpenUpload: (catId?: string, subId?: string) => void;
   onBackToHome: () => void;
   isAdmin: boolean;
@@ -101,18 +100,16 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
         updatedList = updatedList.map(sub => sub.id === editingSubcat.id ? editingSubcat : sub);
       }
 
-      // --- 1. PROSES PENCUCIAN DATA (EXPLICIT PAYLOAD) ---
       const cleanListForServer = updatedList.map(sub => {
         const cleanSub = { ...sub };
         delete cleanSub.pdfUrl;
         delete cleanSub.pdfFileName;
         delete cleanSub.fileId;
         delete cleanSub.slideDeck;
-        cleanSub.isUploaded = false; // Kembalikan ke wujud rak kosong
+        cleanSub.isUploaded = false; 
         return cleanSub;
       });
 
-      // --- 2. KIRIM DATA BERSIH KE SERVER ---
       const response = await fetch('https://kintouncoffee.id/partner/api/update-subcategories.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -144,7 +141,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
 
     setIsSaving(true);
     try {
-      // 1. Hapus PDF fisik dan riwayat di db.json (Hanya dieksekusi jika kartu ini punya PDF)
       if (editingSubcat.fileId) {
         await fetch('https://kintouncoffee.id/partner/api/delete.php', {
           method: 'POST',
@@ -153,10 +149,8 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
         }).catch(err => console.error("Gagal menghapus PDF terkait:", err));
       }
 
-      // 2. Hapus kerangka kartu modul dari subcategoriesList lokal
       const updatedList = subcategoriesList.filter(sub => sub.id !== editingSubcat.id);
 
-      // --- 3. PROSES PENCUCIAN DATA (EXPLICIT PAYLOAD) ---
       const cleanListForServer = updatedList.map(sub => {
         const cleanSub = { ...sub };
         delete cleanSub.pdfUrl;
@@ -167,7 +161,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
         return cleanSub;
       });
 
-      // --- 4. KIRIM DATA BERSIH KE SERVER ---
       const response = await fetch('https://kintouncoffee.id/partner/api/update-subcategories.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -195,17 +188,21 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
   return (
     <div className="relative flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-6xl mx-auto w-full font-sans flex flex-col justify-between min-h-full">
       <div>
-        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <div className="flex items-center gap-2">
-            <button
-              onClick={onBackToHome}
-              className="md:hidden inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-[#d6cfbf] hover:bg-[#eeebe1] hover:text-[#00263f] transition shadow-xs cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Kembali</span>
-            </button>
-          </div>
+        
+        {/* --- BREADCRUMB HEADER BARU --- */}
+        <div className="font-poppins flex items-center gap-2.5 text-sm md:text-[15px] font-semibold text-[#00263f] opacity-70 mb-5 sm:mb-6 tracking-wide">
+          <span 
+            onClick={onBackToHome}
+            className="cursor-pointer hover:opacity-70 transition"
+          >
+            Homepage
+          </span>
+          <ChevronRight className="w-4 h-4 text-slate-400 stroke-[2.5]" />
+          <span className="capitalize">
+            {currentCategory.name.toLowerCase()}
+          </span>
         </div>
+        {/* --- END OF BREADCRUMB --- */}
 
         <div className="bg-white rounded-2xl border border-[#d6cfbf] p-4 sm:p-5 mb-6 shadow-xs flex items-center justify-between gap-4">
           <div className="flex items-center gap-3.5 min-w-0">
@@ -243,8 +240,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-10">
           {visibleSubcategories.map((subcat) => {
             const SubcatIcon = getIconComponent(subcat.iconName);
-            
-            // LOGIKA PENGECEKAN MATERI KOSONG
             const isContentEmpty = !subcat.isUploaded && !subcat.pdfUrl;
 
             return (
@@ -300,7 +295,6 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
                     <button 
                       onClick={(e) => {
                         e.stopPropagation();
-                        // //code: Melempar ID spesifik agar modal pintar membaca tujuannya
                         onOpenUpload(categoryId, subcat.id);
                       }}
                       className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-300 border border-slate-200 text-slate-750 hover:bg-slate-200 hover:text-slate-800 transition flex items-center gap-1.5 cursor-pointer"
