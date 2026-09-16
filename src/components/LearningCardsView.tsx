@@ -40,7 +40,7 @@ export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
     <div className="relative flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-6xl mx-auto w-full font-sans pb-20">
       
       {/* --- BREADCRUMB HEADER BARU --- */}
-      <div className="flex items-center gap-2.5 text-sm md:text-[15px] font-bold text-[#00263f] mb-5 sm:mb-6 tracking-wide">
+      <div className="font-poppins flex items-center gap-2.5 text-sm md:text-[15px] font-semibold text-[#00263f] opacity-70 mb-5 sm:mb-6 tracking-wide">
         <span 
           onClick={onBackToHome || onBack}
           className="cursor-pointer hover:opacity-70 transition"
