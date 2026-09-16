@@ -101,10 +101,22 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
         updatedList = updatedList.map(sub => sub.id === editingSubcat.id ? editingSubcat : sub);
       }
 
+      // --- 1. PROSES PENCUCIAN DATA (EXPLICIT PAYLOAD) ---
+      const cleanListForServer = updatedList.map(sub => {
+        const cleanSub = { ...sub };
+        delete cleanSub.pdfUrl;
+        delete cleanSub.pdfFileName;
+        delete cleanSub.fileId;
+        delete cleanSub.slideDeck;
+        cleanSub.isUploaded = false; // Kembalikan ke wujud rak kosong
+        return cleanSub;
+      });
+
+      // --- 2. KIRIM DATA BERSIH KE SERVER ---
       const response = await fetch('https://kintouncoffee.id/partner/api/update-subcategories.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subcategories: updatedList })
+        body: JSON.stringify({ subcategories: cleanListForServer })
       });
 
       const result = await response.json();
@@ -141,13 +153,25 @@ export const CategoryView: React.FC<CategoryViewProps> = ({
         }).catch(err => console.error("Gagal menghapus PDF terkait:", err));
       }
 
-      // 2. Hapus kerangka kartu modul dari subcategories.json
+      // 2. Hapus kerangka kartu modul dari subcategoriesList lokal
       const updatedList = subcategoriesList.filter(sub => sub.id !== editingSubcat.id);
 
+      // --- 3. PROSES PENCUCIAN DATA (EXPLICIT PAYLOAD) ---
+      const cleanListForServer = updatedList.map(sub => {
+        const cleanSub = { ...sub };
+        delete cleanSub.pdfUrl;
+        delete cleanSub.pdfFileName;
+        delete cleanSub.fileId;
+        delete cleanSub.slideDeck;
+        cleanSub.isUploaded = false; 
+        return cleanSub;
+      });
+
+      // --- 4. KIRIM DATA BERSIH KE SERVER ---
       const response = await fetch('https://kintouncoffee.id/partner/api/update-subcategories.php', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subcategories: updatedList })
+        body: JSON.stringify({ subcategories: cleanListForServer })
       });
 
       const result = await response.json();
