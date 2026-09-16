@@ -9,7 +9,8 @@ export interface CategoryMeta {
   badgeBg: string;
   items: string[];
   tagline: string;
-  iconName: 'users' | 'coffee' | 'wrench' | 'user-check' | 'package' | 'store';
+  // Menambahkan ikon tambahan di tipe data
+  iconName: 'users' | 'coffee' | 'wrench' | 'user-check' | 'package' | 'store' | 'truck' | 'sparkles' | 'rocket';
   accentLight: string;
   accentText: string;
   accentBorder: string;
@@ -141,6 +142,36 @@ export const CATEGORIES: CategoryMeta[] = [
       'Cash Management',
       'Operation Support'
     ]
+  },
+  {
+    id: 'delivery',
+    name: 'DELIVERY ISSUE',
+    titleLines: ['DELIVERY', 'ISSUE'],
+    solveButtonText: 'SOLVE DELIVERY ISSUE',
+    colorHex: '#c2410c',
+    badgeBg: 'bg-orange-700',
+    tagline: 'Logistik, Keterlambatan & Kerusakan',
+    iconName: 'truck',
+    accentLight: 'bg-orange-50 text-orange-700 border-orange-200',
+    accentText: 'text-orange-700',
+    accentBorder: 'border-orange-500',
+    badgeText: 'Logistik',
+    items: []
+  },
+  {
+    id: 'nso',
+    name: 'NSO ISSUE',
+    titleLines: ['NSO', 'ISSUE'],
+    solveButtonText: 'SOLVE NSO ISSUE',
+    colorHex: '#db2777',
+    badgeBg: 'bg-pink-600',
+    tagline: 'Pembukaan Gerai Baru (New Store Opening)',
+    iconName: 'rocket',
+    accentLight: 'bg-pink-50 text-pink-700 border-pink-200',
+    accentText: 'text-pink-700',
+    accentBorder: 'border-pink-500',
+    badgeText: 'Setup Store',
+    items: []
   }
 ];
 
@@ -242,6 +273,34 @@ export const INITIAL_SPECIFIC_NEWS: Record<CategoryId, NewsArticle> = {
     pdfFileSize: '1.6 MB',
     uploadedBy: 'Store Operations Manager',
     updatedAt: '1 minggu lalu'
+  },
+  delivery: {
+    id: 'specific-news-delivery',
+    type: 'specific',
+    categoryId: 'delivery',
+    title: 'PANDUAN PENANGANAN LOGISTIK & PENGIRIMAN',
+    subtitle: 'Standar Operasional Masalah Delivery',
+    summary: 'Panduan lengkap penanganan barang yang rusak dalam perjalanan, dll.',
+    thumbnailUrl: '',
+    pdfUrl: '',
+    pdfFileName: 'Delivery_Issue_SOP.pdf',
+    pdfFileSize: '1.0 MB',
+    uploadedBy: 'Supply Chain Ops',
+    updatedAt: '1 minggu lalu'
+  },
+  nso: {
+    id: 'specific-news-nso',
+    type: 'specific',
+    categoryId: 'nso',
+    title: 'SOP PEMBUKAAN GERAI BARU (NEW STORE OPENING)',
+    subtitle: 'Checklist Lengkap Pembukaan Store',
+    summary: 'Panduan setup operasional dari mesin hingga penempatan stock untuk toko baru.',
+    thumbnailUrl: '',
+    pdfUrl: '',
+    pdfFileName: 'NSO_Issue_SOP.pdf',
+    pdfFileSize: '1.1 MB',
+    uploadedBy: 'Operation Head',
+    updatedAt: '1 minggu lalu'
   }
 };
 
@@ -286,7 +345,7 @@ export const INITIAL_NOTIFICATIONS: AppNotification[] = [
   }
 ];
 
-import { TicketTemplate } from '../types'; // Tambahkan ini di atas
+import { TicketTemplate } from '../types';
 
 export const INITIAL_TICKET_TEMPLATES: TicketTemplate[] = [
   {
