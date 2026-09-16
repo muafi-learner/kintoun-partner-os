@@ -154,7 +154,18 @@ export default function App() {
       if (items.length === 0) {
         setMainNews(INITIAL_MAIN_NEWS);
         setSpecificNews(INITIAL_SPECIFIC_NEWS);
-        setSubcategories(latestSubcategories);
+        
+        // PENCUCIAN DATA: Paksa semua kerangka menjadi kosong (false) jika db.json kosong
+        const cleanEmptySubcategories = latestSubcategories.map(sub => ({
+          ...sub,
+          isUploaded: false,
+          pdfUrl: undefined,
+          pdfFileName: undefined,
+          fileId: undefined,
+          slideDeck: undefined
+        }));
+        
+        setSubcategories(cleanEmptySubcategories);
         return;
       }
 
