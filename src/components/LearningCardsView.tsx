@@ -1,5 +1,5 @@
 import React from 'react';
-import { ChevronRight, ArrowLeft, ExternalLink } from 'lucide-react';
+import { ChevronRight, ExternalLink } from 'lucide-react';
 import { SubcategoryCard } from '../types';
 import { PdfViewer } from './PdfViewer';
 import { EmptyModuleState } from './EmptyModuleState';
@@ -16,6 +16,7 @@ const formatTitleCase = (text: string) => {
 interface LearningCardsViewProps {
   cardData: SubcategoryCard;
   onBack: () => void;
+  onBackToHome?: () => void; // Opsional: Untuk navigasi langsung ke Home
   onOpenUpload: () => void;
   onDeletePdf?: (subcategoryId: string) => void;
   isAdmin: boolean;
@@ -25,52 +26,40 @@ interface LearningCardsViewProps {
 export const LearningCardsView: React.FC<LearningCardsViewProps> = ({
   cardData,
   onBack,
+  onBackToHome,
   onOpenUpload,
   onDeletePdf,
   isAdmin,
   targetSlide = 1
 }) => {
-  // //code: Validasi ketat murni berdasarkan ada tidaknya URL atau ID file fisik
+  // Validasi ketat murni berdasarkan ada tidaknya URL atau ID file fisik
   const isUploaded = Boolean(cardData.pdfUrl || cardData.pdfDataUrl || cardData.fileId || cardData.isUploaded);
   const slideDeck = cardData.slideDeck && cardData.slideDeck.length > 0 ? cardData.slideDeck : undefined;
 
   return (
     <div className="relative flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto max-w-6xl mx-auto w-full font-sans pb-20">
-      {/* Top Breadcrumb Row */}
-      <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
-        <div className="flex items-center gap-2">
-          <button
-            id="btn-back-to-category"
-            onClick={onBack}
-            className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-bold text-slate-700 bg-white border border-[#d6cfbf] hover:bg-[#eeebe1] hover:text-[#00263f] transition shadow-xs cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span>Kembali</span>
-          </button>
-          
-          <nav className="hidden sm:flex items-center space-x-1.5 text-xs sm:text-sm font-bold text-slate-800 ml-2">
-            <button
-              onClick={onBack}
-              className="hover:text-[#00263f] transition cursor-pointer"
-            >
-              Homepage
-            </button>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-            
-            <button
-              onClick={onBack}
-              className="hover:text-[#00263f] transition cursor-pointer"
-            >
-              {formatTitleCase(`${cardData.categoryId} Issue`)}
-            </button>
-            <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
-            
-            <span className="text-[#00263f] font-bold truncate max-w-[200px] sm:max-w-none">
-              {formatTitleCase(cardData.title)}
-            </span>
-          </nav>
-        </div>
+      
+      {/* --- BREADCRUMB HEADER BARU --- */}
+      <div className="font-poppins flex items-center gap-2.5 text-sm md:text-[15px] font-semibold text-[#00263f] opacity-70 mb-5 sm:mb-6 tracking-wide">
+        <span 
+          onClick={onBackToHome || onBack}
+          className="cursor-pointer hover:opacity-70 transition"
+        >
+          Homepage
+        </span>
+        <ChevronRight className="w-4 h-4 text-slate-400 stroke-[2.5]" />
+        <span 
+          onClick={onBack}
+          className="cursor-pointer hover:opacity-70 transition"
+        >
+          {formatTitleCase(`${cardData.categoryId} Issue`)}
+        </span>
+        <ChevronRight className="w-4 h-4 text-slate-400 stroke-[2.5]" />
+        <span>
+          {formatTitleCase(cardData.title)}
+        </span>
       </div>
+      {/* --- END OF BREADCRUMB --- */}
 
       {/* Main Content Viewer / Empty Dropzone */}
       <div id="ppt-viewer-wrapper" className="w-full">
