@@ -8,7 +8,7 @@ import {
   CheckSquare, DoorOpen, CreditCard, ShieldCheck, CheckCircle2, 
   PlusCircle, ExternalLink, Boxes, Sparkles, ArrowLeft, LifeBuoy, 
   Edit3, Check, HelpCircle, Info, Monitor, Smartphone, Camera,
-  Upload, ArrowRight, ChevronRight
+  Upload, ArrowRight, ChevronRight, Rocket
 } from 'lucide-react';
 import { CategoryId, SubcategoryCard, NewsArticle } from '../types';
 import { CATEGORIES } from '../data/initialData';
@@ -19,7 +19,7 @@ const AVAILABLE_ICONS = [
   'store', 'shield-check', 'truck', 'shopping-cart',
   'settings', 'calendar', 'clock', 'credit-card',
   'phone-call', 'smile', 'hammer', 'trending-up',
-  'help-circle', 'info', 'monitor', 'camera'
+  'help-circle', 'info', 'monitor', 'camera', 'rocket'
 ];
 
 const IconMap: Record<string, React.ElementType> = {
@@ -31,7 +31,8 @@ const IconMap: Record<string, React.ElementType> = {
   'alert-circle': AlertCircle, 'shopping-cart': ShoppingCart, 'truck': Truck, 'trash-2': Trash2,
   'store': Store, 'check-square': CheckSquare, 'door-open': DoorOpen, 'credit-card': CreditCard,
   'users': Users, 'user-check': UserCheck, 'package': PackageCheck, 'layers': Layers,
-  'help-circle': HelpCircle, 'info': Info, 'monitor': Monitor, 'smartphone': Smartphone, 'camera': Camera
+  'help-circle': HelpCircle, 'info': Info, 'monitor': Monitor, 'smartphone': Smartphone, 'camera': Camera,
+  'rocket': Rocket
 };
 
 const getIconComponent = (iconName?: string): React.ElementType => {
