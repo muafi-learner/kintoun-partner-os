@@ -15,7 +15,9 @@ export type CategoryId =
   | 'equipment' 
   | 'people' 
   | 'stock' 
-  | 'store';
+  | 'store'
+  | 'delivery' // NEW
+  | 'nso';     // NEW
 
 export interface PdfSlide {
   slideNumber: number;
