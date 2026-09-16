@@ -2,7 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { 
   ArrowRight, ChevronRight, ExternalLink, 
   Search, Users, Coffee, Wrench, UserCheck, PackageCheck, Store, 
-  X, Layers, Edit3, Check, PlusCircle, Clock, ShieldAlert, UserX, FileText, HelpCircle, Trash2
+  X, Layers, Edit3, Check, PlusCircle, Clock, ShieldAlert, UserX, FileText, HelpCircle, Trash2,
+  Truck, Rocket
 } from 'lucide-react';
 import { CategoryId, NewsArticle, CategoryConfig, SubcategoryCard, TicketTemplate } from '../types';
 import { CATEGORIES } from '../data/initialData';
@@ -31,7 +32,7 @@ interface HomeViewProps {
   onOpenUpload: () => void;
   onUpdateTickets: (newTickets: TicketTemplate[]) => void;
   isAdmin: boolean;
-  canViewTickets: boolean; // Tambahan prop otorisasi tiket
+  canViewTickets: boolean;
 }
 
 export const HomeView: React.FC<HomeViewProps> = ({
@@ -42,7 +43,7 @@ export const HomeView: React.FC<HomeViewProps> = ({
   onSelectCategory,
   onUpdateTickets,
   isAdmin,
-  canViewTickets, // Tangkap prop otorisasi tiket
+  canViewTickets,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
    
@@ -182,6 +183,8 @@ export const HomeView: React.FC<HomeViewProps> = ({
       case 'user-check': return <UserCheck className={`${iconClass} text-purple-600`} />;
       case 'package': return <PackageCheck className={`${iconClass} text-orange-600`} />;
       case 'store': return <Store className={`${iconClass} text-sky-600`} />;
+      case 'truck': return <Truck className={`${iconClass} text-orange-700`} />;
+      case 'rocket': return <Rocket className={`${iconClass} text-pink-600`} />;
       default: return <Layers className={`${iconClass} text-slate-600`} />;
     }
   };
