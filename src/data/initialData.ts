@@ -149,7 +149,7 @@ export const CATEGORIES: CategoryMeta[] = [
     solveButtonText: 'SOLVE DELIVERY ISSUE',
     colorHex: '#c2410c',
     badgeBg: 'bg-orange-700',
-    tagline: 'Logistik, Keterlambatan & Kerusakan',
+    tagline: 'Masalah Grab/GoFood/ShopeeFood, Cup Bocor di Perjalanan & Kendala Driver',
     iconName: 'truck',
     accentLight: 'bg-orange-50 text-orange-700 border-orange-200',
     accentText: 'text-orange-700',
