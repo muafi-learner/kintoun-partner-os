@@ -1,4 +1,4 @@
-import { CategoryId, NewsArticle, SubcategoryCard, AppNotification } from '../types';
+import { CategoryId, NewsArticle, AppNotification, TicketTemplate } from '../types';
 
 export interface CategoryMeta {
   id: CategoryId;
@@ -9,7 +9,6 @@ export interface CategoryMeta {
   badgeBg: string;
   items: string[];
   tagline: string;
-  // Menambahkan ikon tambahan di tipe data
   iconName: 'users' | 'coffee' | 'wrench' | 'user-check' | 'package' | 'store' | 'truck' | 'sparkles' | 'rocket';
   accentLight: string;
   accentText: string;
@@ -117,7 +116,7 @@ export const CATEGORIES: CategoryMeta[] = [
     items: [
       'Stock Shortage',
       'Ordering',
-      'Delivery Issue',
+      'Delivery Order Issue', // <-- Diperbarui di sini
       'Inventory',
       'Waste'
     ]
@@ -145,8 +144,8 @@ export const CATEGORIES: CategoryMeta[] = [
   },
   {
     id: 'delivery',
-    name: 'DELIVERY ISSUE',
-    titleLines: ['DELIVERY', 'ISSUE'],
+    name: 'DELIVERY ORDER ISSUE', // <-- Diperbarui di sini
+    titleLines: ['DELIVERY ORDER', 'ISSUE'], // <-- Diperbarui di sini
     solveButtonText: 'SOLVE DELIVERY ISSUE',
     colorHex: '#c2410c',
     badgeBg: 'bg-orange-700',
@@ -344,8 +343,6 @@ export const INITIAL_NOTIFICATIONS: AppNotification[] = [
     }
   }
 ];
-
-import { TicketTemplate } from '../types';
 
 export const INITIAL_TICKET_TEMPLATES: TicketTemplate[] = [
   {
