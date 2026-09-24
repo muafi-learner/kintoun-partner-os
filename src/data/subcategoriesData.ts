@@ -88,7 +88,7 @@ export const INITIAL_SUBCATEGORIES: SubcategoryCard[] = [
   {
     id: 'product-availability',
     categoryId: 'product',
-    title: 'PRODUK AVAILABILITY',
+    title: 'PRODUCT AVAILABILITY',
     description: 'Manajemen status ketersediaan menu di POS, penanganan sold-out sementara, dan alternatif produk.',
     iconBgColor: '#78350f',
     iconName: 'boxes',
@@ -99,7 +99,7 @@ export const INITIAL_SUBCATEGORIES: SubcategoryCard[] = [
   {
     id: 'product-complain',
     categoryId: 'product',
-    title: 'PRODUC COMPLAIN',
+    title: 'PRODUCT COMPLAINT',
     description: 'Prosedur penanganan komplain rasa minuman, pergantian produk baru di tempat (remake), dan audit mutu.',
     iconBgColor: '#5e290c',
     iconName: 'message-square-warning',
@@ -114,7 +114,7 @@ export const INITIAL_SUBCATEGORIES: SubcategoryCard[] = [
   {
     id: 'troubleshooting',
     categoryId: 'equipment',
-    title: 'EQUIPMENT TROUBLE SHOOTING',
+    title: 'EQUIPMENT TROUBLESHOOTING',
     description: 'Pertolongan pertama saat mesin espresso bocor, steam wand mampet, atau grinder macet.',
     iconBgColor: '#3b82f6',
     iconName: 'wrench',
@@ -147,7 +147,7 @@ export const INITIAL_SUBCATEGORIES: SubcategoryCard[] = [
   {
     id: 'emergency-equipment',
     categoryId: 'equipment',
-    title: 'EMERGENCY EQUIMPENT ISSU',
+    title: 'EMERGENCY EQUIPMENT ISSUE',
     description: 'Protokol darurat saat listrik padam total, kebocoran pipa air tekanan tinggi, atau konsleting bar.',
     iconBgColor: '#1e40af',
     iconName: 'alert-octagon',
@@ -162,7 +162,7 @@ export const INITIAL_SUBCATEGORIES: SubcategoryCard[] = [
   {
     id: 'attendance',
     categoryId: 'people',
-    title: 'ATTEDNACE',
+    title: 'ATTENDANCE',
     description: 'Kebijakan absensi digital, toleransi keterlambatan, prosedur izin sakit, dan pelaporan kru berhalangan.',
     iconBgColor: '#8b5cf6',
     iconName: 'clock',
@@ -241,9 +241,9 @@ export const INITIAL_SUBCATEGORIES: SubcategoryCard[] = [
     tags: ['Pemesanan', 'PO Warehouse', 'Lead Time']
   },
   {
-    id: 'delivery-issue',
+    id: 'delivery-order-issue',
     categoryId: 'stock',
-    title: 'DELIVERY ISSUE',
+    title: 'DELIVERY ORDER ISSUE',
     description: 'Prosedur penanganan keterlambatan pengiriman logistik, kardus basah/rusak, dan klaim selisih berita acara.',
     iconBgColor: '#c2410c',
     iconName: 'truck',
@@ -302,7 +302,7 @@ export const INITIAL_SUBCATEGORIES: SubcategoryCard[] = [
   {
     id: 'opening-closing',
     categoryId: 'store',
-    title: 'OPENING & COLING',
+    title: 'OPENING & CLOSING',
     description: 'Checklist 30 menit sebelum buka (turn on AC/chiller) dan 45 menit setelah tutup (sanitasi total gerai).',
     iconBgColor: '#0369a1',
     iconName: 'door-open',
